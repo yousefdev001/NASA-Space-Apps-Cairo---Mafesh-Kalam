@@ -1,0 +1,215 @@
+{
+  "timestamp": "2026-11-14T05:52:53.241211+00:00",
+  "total": 26,
+  "passed": 26,
+  "results": [
+    {
+      "category": "Storage",
+      "test": "ChromaDB Vector Store",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 31354.8,
+      "detail": "2661 chunks indexed"
+    },
+    {
+      "category": "ML Models",
+      "test": "XGBoost Hazard & Anomaly Models",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 701.6,
+      "detail": "Anomaly: 1"
+    },
+    {
+      "category": "Local LLM",
+      "test": "Ollama Daemon & MedGemma Model",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 61.7,
+      "detail": "Models: 5"
+    },
+    {
+      "category": "ML Direct",
+      "test": "GET Port 8001 /ml/health",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 8.3,
+      "detail": "Models: True"
+    },
+    {
+      "category": "ML Direct",
+      "test": "POST Port 8001 /ml/predict",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 135.9,
+      "detail": "Anomaly: 1"
+    },
+    {
+      "category": "RAG Direct",
+      "test": "GET Port 8002 /v1/index/info",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 9.7,
+      "detail": "Chunks: 2661"
+    },
+    {
+      "category": "RAG Direct",
+      "test": "POST Port 8002 /v1/protocols/retrieve",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 8237.5,
+      "detail": "Status: ok"
+    },
+    {
+      "category": "Gateway",
+      "test": "GET /health (Instant readiness probe)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 5.0,
+      "detail": "Mode: online"
+    },
+    {
+      "category": "Gateway",
+      "test": "GET /ml/health (Proxied ML health)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 2.2,
+      "detail": "Models loaded: True"
+    },
+    {
+      "category": "Gateway",
+      "test": "GET /v1/index/info (Proxied RAG telemetry)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 3.4,
+      "detail": "Chunks: 2661"
+    },
+    {
+      "category": "Gateway",
+      "test": "POST /ml/predict (Telemetry anomaly inference)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 29.7,
+      "detail": "Score: 0.98"
+    },
+    {
+      "category": "Gateway",
+      "test": "POST /ml/predict/hazard (NASA hazard risks)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 34.1,
+      "detail": "Risk: Nominal_Low_Risk"
+    },
+    {
+      "category": "Gateway",
+      "test": "POST /v1/protocols/retrieve (Hybrid RAG)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 5671.0,
+      "detail": "Severity: Warning"
+    },
+    {
+      "category": "Gateway",
+      "test": "POST /v1/guidance/generate (Guidance synthesis)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 46193.6,
+      "detail": "Provider: extractive_fallback"
+    },
+    {
+      "category": "Gateway",
+      "test": "POST /api/v1/assess-astronaut (E2E Pipeline)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 47938.7,
+      "detail": "Severity: Warning"
+    },
+    {
+      "category": "Gateway",
+      "test": "POST /v1/chat (Flight Surgeon Copilot)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 40973.5,
+      "detail": "Provider: extractive_fallback"
+    },
+    {
+      "category": "Gateway UI",
+      "test": "GET / (Interactive Testing Studio UI)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 5.1,
+      "detail": "HTML Studio"
+    },
+    {
+      "category": "Gateway UI",
+      "test": "GET /docs (Offline Swagger UI Documentation)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 5.3,
+      "detail": "Swagger HTML"
+    },
+    {
+      "category": "Gateway UI",
+      "test": "GET /chat (Dedicated Chat UI Page)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 8.0,
+      "detail": "HTML Chat"
+    },
+    {
+      "category": "Voice",
+      "test": "GET /api/v1/voice/keypool/status (TTS Keys)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 6.0,
+      "detail": "Keys: None"
+    },
+    {
+      "category": "Voice",
+      "test": "GET /api/v1/voice/mode (Operating Mode)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 5.9,
+      "detail": "Mode: None"
+    },
+    {
+      "category": "Voice",
+      "test": "POST /api/v1/voice/tts (Gemini Speech Synth)",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 10289.8,
+      "detail": "Audio: 3.96s"
+    },
+    {
+      "category": "Tunnel",
+      "test": "Tunnel GET /health",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 1797.3,
+      "detail": "Public HTTPS"
+    },
+    {
+      "category": "Tunnel",
+      "test": "Tunnel GET /ml/health",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 635.2,
+      "detail": "Public HTTPS"
+    },
+    {
+      "category": "Tunnel",
+      "test": "Tunnel GET /v1/index/info",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 735.7,
+      "detail": "Public HTTPS"
+    },
+    {
+      "category": "Tunnel",
+      "test": "Tunnel POST /v1/chat",
+      "passed": true,
+      "status": 200,
+      "latency_ms": 6951.2,
+      "detail": "Provider: cloud"
+    }
+  ]
+}

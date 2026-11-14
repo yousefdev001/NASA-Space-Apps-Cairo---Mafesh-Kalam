@@ -1,0 +1,81 @@
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE & Editor settings
+.idea/
+.vscode/
+.gemini/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Databases, Vectors & Persistent storage
+chroma_data/
+chroma_db/
+data/chroma_db/
+data/test_chroma_db/
+*.pkl
+*.db
+*.sqlite3
+data/raw/
+data/processed/
+data/embeddings/
+
+# Model checkpoints & cache
+models/
+huggingface/
+.cache/
+torch_cache/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# Logs
+*.log
+logs/
+
+# Binaries & Tunnel tools
+infrastructure/bin/
+*.exe
+

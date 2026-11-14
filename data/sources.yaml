@@ -1,0 +1,94 @@
+# NASA Medical Knowledge Sources Catalog
+# Cataloged during Phase 02: Data Discovery
+
+version: "1.0.0"
+date_cataloged: "2026-11-13"
+
+sources:
+  - doc_id: "NASA-CKLIST-REVK"
+    filename: "Medical Checklist Rev K PCN-4.pdf"
+    title: "JSC-48031 Medical Checklist Generic, Revision K PCN-4"
+    tier: 1
+    tier_description: "Tier 1: Operational Procedures & Medical Checklists"
+    pages: 227
+    size_mb: 2.73
+    sha256: "4a2959e90eb35f35dfec89c56fa769eb0700868a287c8d93a61d15234ea7e9f3"
+    digital_text_coverage: "95.6%"
+    status: "Primary operational procedure source for action steps"
+
+  - doc_id: "NASA-CKLIST-REVH"
+    filename: "Medical Checklist Rev H.pdf"
+    title: "Medical Checklist, Revision H"
+    tier: 1
+    tier_description: "Tier 1: Operational Procedures & Medical Checklists"
+    pages: 203
+    size_mb: 1.50
+    sha256: "fdaa19336f94b4121bf34d3753713028d68d18471b04b901b0f588a457be0ca6"
+    digital_text_coverage: "97.5%"
+    status: "Historical reference procedure source"
+
+  - doc_id: "NASA-CKLIST-177788"
+    filename: "177788main_MedicalCklist.pdf"
+    title: "JSC-48031 Medical Checklist Generic (177788main)"
+    tier: 1
+    tier_description: "Tier 1: Operational Procedures & Medical Checklists"
+    pages: 217
+    size_mb: 2.20
+    sha256: "25b5f9a81a87097f58a5e8e811c0800fb9535bf804d962c823028e35cfd80e8e"
+    digital_text_coverage: "97.2%"
+    status: "Generic operational checklist"
+
+  - doc_id: "NASA-STD-3001-REVC"
+    filename: "nasa-std-3001-vol-1-rev-c-signature.pdf"
+    title: "NASA-STD-3001 Volume 1 Revision C: Crew Health"
+    tier: 2
+    tier_description: "Tier 2: Medical Standards & Care-Level References"
+    pages: 87
+    size_mb: 1.75
+    sha256: "93f9f08700959cd56a02dfc05d7bda2977f0d0bf3cb92b3a8634eeb8b63434e3"
+    digital_text_coverage: "98.9%"
+    status: "Official ratified standard for health care levels"
+
+  - doc_id: "NASA-STD-3001-VOL1A"
+    filename: "NASA-STD-3001-VOL-1A-Chg1-1.pdf"
+    title: "NASA-STD-3001 Volume 1A Change 1: Crew Health"
+    tier: 2
+    tier_description: "Tier 2: Medical Standards & Care-Level References"
+    pages: 83
+    size_mb: 0.95
+    sha256: "b68a53e10e31de5348270119f6a7d8bbaf680327f3dfbb7ba38006bf2b2605eb"
+    digital_text_coverage: "100.0%"
+    status: "Supporting standard reference"
+
+  - doc_id: "NASA-TM-2019-220299"
+    filename: "20190027540.pdf"
+    title: "Development of an Accepted Medical Condition List for Exploration Medical Care"
+    tier: 3
+    tier_description: "Tier 3: Medical Condition Lists & Technical References"
+    pages: 40
+    size_mb: 1.50
+    sha256: "939ca6884e6779119fc9810bb849c7161b5dd13be3c0bbf23d8c119253457e9c"
+    digital_text_coverage: "97.5%"
+    status: "Accepted exploration medical condition taxonomy"
+
+  - doc_id: "NASA-TM-2017-219290"
+    filename: "20170004345.pdf"
+    title: "Interpretation of NASA-STD-3001 Levels of Care for Exploration Medical Systems"
+    tier: 3
+    tier_description: "Tier 3: Medical Condition Lists & Technical References"
+    pages: 12
+    size_mb: 0.13
+    sha256: "80883a69fa7fbf1476d05f3a0937a4c7e6c0c2dd3c2800360a08e1a140f7d549"
+    digital_text_coverage: "100.0%"
+    status: "Level of care classification background"
+
+  - doc_id: "NASA-EXMC-EVIDENCE"
+    filename: "20170004604.pdf"
+    title: "Evidence Report: Risk of Adverse Health Outcomes and Performance Decrements"
+    tier: 3
+    tier_description: "Tier 3: Medical Condition Lists & Technical References"
+    pages: 79
+    size_mb: 0.53
+    sha256: "71260e17660a4cdb309ec5ae68a9c3629e4fe62402ba691459a9ba4ca6ce9384"
+    digital_text_coverage: "100.0%"
+    status: "Clinical pathophysiology and risk context"

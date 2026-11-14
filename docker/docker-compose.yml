@@ -1,0 +1,54 @@
+services:
+  # MySQL for structured application data, audit trails, and request tracking
+  mysql:
+    image: mysql:9.4
+    container_name: auramed_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-auramed_db}
+      MYSQL_USER: ${MYSQL_USER:-auramed_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-auramed_password}
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - auramed_net
+
+  # ChromaDB Vector Database for semantic document chunk search
+  chromadb:
+    image: chromadb/chroma:0.5.20
+    container_name: auramed_chromadb
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${CHROMA_PORT:-8000}:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - auramed_net
+
+volumes:
+  mysql_data:
+    name: auramed_mysql_data
+  chroma_data:
+    name: auramed_chroma_data
+
+networks:
+  auramed_net:
+    name: auramed_network
+    driver: bridge

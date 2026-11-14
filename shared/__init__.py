@@ -1,0 +1,1 @@
+"""AuraMed Shared Core Module."""

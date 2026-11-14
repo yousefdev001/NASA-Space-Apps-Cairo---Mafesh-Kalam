@@ -1,0 +1,38 @@
+[project]
+name = "auramed"
+version = "0.1.0"
+description = "Healthcare AI System - NASA Space Apps Challenge 2026"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.6.0",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14.0",
+    "pymysql>=1.1.1",
+    "cryptography>=43.0.0",
+    "httpx>=0.28.0",
+    "chromadb>=0.5.20",
+    "rank-bm25>=0.2.2",
+    "pymupdf>=1.25.0",
+    "sentence-transformers>=3.3.0",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "python-dotenv>=1.0.1",
+    "diffusers>=0.43.0",
+    "scipy>=1.17.1",
+    "soundfile>=0.14.0",
+    "accelerate>=1.15.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"

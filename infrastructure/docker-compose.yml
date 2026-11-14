@@ -1,0 +1,54 @@
+services:
+  # ChromaDB Vector Store
+  chromadb:
+    image: chromadb/chroma:0.5.20
+    container_name: auramed_chromadb
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${CHROMA_PORT:-8000}:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - auramed_network
+
+  # Optional MySQL container (Use only if native MySQL service 'MySQL94' is stopped)
+  mysql:
+    image: mysql:9.4
+    container_name: auramed_mysql
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MYSQL_CONTAINER_PORT:-3307}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-dev_secret_password}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-auramed_db}
+      MYSQL_USER: ${MYSQL_USER:-auramed_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-dev_secret_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - auramed_network
+
+volumes:
+  chromadb_data:
+    name: auramed_chromadb_data
+  mysql_data:
+    name: auramed_mysql_data
+
+networks:
+  auramed_network:
+    name: auramed_net
+    driver: bridge

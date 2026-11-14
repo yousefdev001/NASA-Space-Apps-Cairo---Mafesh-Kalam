@@ -1,0 +1,108 @@
+# ==============================================================================
+# NASA Spaceflight Medical Condition Taxonomy
+# Reference: Accepted Medical Condition List (NASA/TM-2019-220299)
+# NASA Space Flight Human-System Standard (NASA-STD-3001 Vol 1A & 2)
+# ==============================================================================
+
+version: "1.0.0"
+authority: "NASA ExMC & Exploration Medical Capabilities"
+
+conditions:
+  - id: COND-RESP-01
+    name: "Acute Hypoxia"
+    hypothesis_key: "hypoxia_suspected"
+    primary_vital: "spo2_percent"
+    critical_threshold: "<= 88.0%"
+    warning_threshold: "<= 92.0%"
+    tier1_procedure: "Emergency Oxygen Administration / Quick-Don Mask"
+    nasa_document_ref: "JSC-48031 Medical Checklist Rev K PCN-4, p.226"
+
+  - id: COND-CARD-01
+    name: "Severe Tachycardia"
+    hypothesis_key: "tachycardia_severe"
+    primary_vital: "heart_rate_bpm"
+    critical_threshold: ">= 140.0 bpm"
+    warning_threshold: ">= 110.0 bpm"
+    tier1_procedure: "Cardiac Dysrhythmia & Tachycardia Protocol"
+    nasa_document_ref: "JSC-48031 Medical Checklist Rev K PCN-4, p.150"
+
+  - id: COND-CARD-02
+    name: "Acute Bradycardia"
+    hypothesis_key: "bradycardia_critical"
+    primary_vital: "heart_rate_bpm"
+    critical_threshold: "<= 40.0 bpm"
+    warning_threshold: "<= 50.0 bpm"
+    tier1_procedure: "Bradycardia Supportive Management"
+    nasa_document_ref: "JSC-48031 Medical Checklist Rev K PCN-4, p.154"
+
+  - id: COND-CARD-03
+    name: "Acute Hypotension / Circulatory Shock"
+    hypothesis_key: "hypotension_critical"
+    primary_vital: "systolic_bp_mmhg"
+    critical_threshold: "<= 80.0 mmHg"
+    warning_threshold: "<= 90.0 mmHg"
+    tier1_procedure: "Intravenous Fluid Resuscitation Protocol"
+    nasa_document_ref: "JSC-48031 Medical Checklist Rev K PCN-4, p.165"
+
+  - id: COND-CARD-04
+    name: "Hypertensive Crisis"
+    hypothesis_key: "hypertension_severe"
+    primary_vital: "systolic_bp_mmhg"
+    critical_threshold: ">= 170.0 mmHg"
+    warning_threshold: ">= 140.0 mmHg"
+    tier1_procedure: "Acute Hypertension Management"
+    nasa_document_ref: "JSC-48031 Medical Checklist Rev K PCN-4, p.168"
+
+  - id: COND-THERM-01
+    name: "Severe Hyperthermia / Heat Exhaustion"
+    hypothesis_key: "hyperthermia_critical"
+    primary_vital: "body_temperature_c"
+    critical_threshold: ">= 39.0 °C"
+    warning_threshold: ">= 38.0 °C"
+    tier1_procedure: "Active Cooling & Hydration Countermeasures"
+    nasa_document_ref: "JSC-48031 Medical Checklist Rev K PCN-4, p.180"
+
+  - id: COND-THERM-02
+    name: "Severe Hypothermia"
+    hypothesis_key: "hypothermia_critical"
+    primary_vital: "body_temperature_c"
+    critical_threshold: "<= 35.0 °C"
+    warning_threshold: "<= 35.8 °C"
+    tier1_procedure: "Rewarming Protocol & Thermal Insulation"
+    nasa_document_ref: "JSC-48031 Medical Checklist Rev K PCN-4, p.184"
+
+  - id: COND-RESP-02
+    name: "Respiratory Depression / Hypoventilation"
+    hypothesis_key: "hypoventilation_critical"
+    primary_vital: "respiratory_rate_bpm"
+    critical_threshold: "<= 8.0 breaths/min"
+    warning_threshold: "<= 10.0 breaths/min"
+    tier1_procedure: "Bag-Valve-Mask Ventilatory Support"
+    nasa_document_ref: "JSC-48031 Medical Checklist Rev K PCN-4, p.230"
+
+  - id: COND-RESP-03
+    name: "Tachypnea / Hyperventilation"
+    hypothesis_key: "tachypnea_severe"
+    primary_vital: "respiratory_rate_bpm"
+    critical_threshold: ">= 28.0 breaths/min"
+    warning_threshold: ">= 22.0 breaths/min"
+    tier1_procedure: "Respiratory Distress Countermeasures"
+    nasa_document_ref: "JSC-48031 Medical Checklist Rev K PCN-4, p.232"
+
+  - id: COND-ENV-01
+    name: "Cabin Hypercapnia (Elevated CO2)"
+    hypothesis_key: "hypercapnia_suspected"
+    primary_vital: "ambient_co2_percent"
+    critical_threshold: ">= 1.0%"
+    warning_threshold: ">= 0.5%"
+    tier1_procedure: "CDRA Scrubber Activation & CO2 Reduction"
+    nasa_document_ref: "NASA-STD-3001 Vol 2, p.112"
+
+  - id: COND-GEN-01
+    name: "Unknown Physiological Anomaly"
+    hypothesis_key: "unknown_physiological_anomaly"
+    primary_vital: "ml_anomaly_label"
+    critical_threshold: "None"
+    warning_threshold: "ML=1 without specific vital violation"
+    tier1_procedure: "Comprehensive Baseline Health Assessment"
+    nasa_document_ref: "NASA-STD-3001 Vol 1A, p.38"

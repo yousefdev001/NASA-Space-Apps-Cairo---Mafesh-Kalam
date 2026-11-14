@@ -1,0 +1,43 @@
+{
+  "case_id": "GOLDEN-015",
+  "condition_id": "hypertension",
+  "variant": "boundary_check",
+  "description": "Borderline threshold check for Hypertensive Crisis.",
+  "expected_severity": "Warning",
+  "expected_escalation": false,
+  "expected_escalation_target": "Crew Medical Officer",
+  "expected_query_keywords": [
+    "hypertension",
+    "blood pressure",
+    "pressure"
+  ],
+  "request_payload": {
+    "request_id": "GOLDEN-015",
+    "astronaut_id": "ASTRO-EVAL-01",
+    "ml": {
+      "anomaly_label": 0,
+      "confidence_score": 0.65
+    },
+    "vitals": {
+      "heart_rate_bpm": 72.0,
+      "hrv_rmssd_ms": 52.0,
+      "spo2_percent": 98.5,
+      "body_temperature_c": 36.8,
+      "respiratory_rate_bpm": 14.0,
+      "systolic_bp_mmhg": 145.0,
+      "diastolic_bp_mmhg": 76.0,
+      "heart_rate_bpm_rolling_mean_60min": 72.0,
+      "heart_rate_bpm_rolling_std_60min": 2.5,
+      "hrv_rmssd_ms_rolling_mean_60min": 52.0,
+      "hrv_rmssd_ms_rolling_std_60min": 3.0,
+      "spo2_percent_rolling_mean_60min": 98.5,
+      "spo2_percent_rolling_std_60min": 0.4,
+      "body_temperature_c_rolling_mean_60min": 36.8,
+      "body_temperature_c_rolling_std_60min": 0.1,
+      "respiratory_rate_bpm_rolling_mean_60min": 14.0,
+      "respiratory_rate_bpm_rolling_std_60min": 1.0,
+      "request_id": "GOLDEN-015",
+      "astronaut_id": "ASTRO-EVAL-01"
+    }
+  }
+}

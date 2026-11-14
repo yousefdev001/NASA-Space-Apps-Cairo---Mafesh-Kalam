@@ -1,0 +1,52 @@
+"""
+Pytest suite for Phase 01: Environment Setup Smoke Tests.
+"""
+import pytest
+import sys
+import socket
+import httpx
+
+def test_python_version():
+    assert sys.version_info >= (3, 11), "Python must be 3.11 or newer"
+
+def test_core_library_imports():
+    import fastapi
+    import uvicorn
+    import pydantic
+    import sqlalchemy
+    import httpx
+    import chromadb
+    import rank_bm25
+    import fitz
+    import sentence_transformers
+    assert True
+
+def test_ollama_connectivity():
+    url = "http://localhost:11434/api/tags"
+    resp = httpx.get(url, timeout=5.0)
+    assert resp.status_code == 200
+    data = resp.json()
+    model_names = [m["name"] for m in data.get("models", [])]
+    assert any("deepseek-r1" in name or "qwen2.5-coder" in name for name in model_names), \
+        f"Expected models not found in {model_names}"
+
+def test_chromadb_basic_operations():
+    import chromadb
+    client = chromadb.EphemeralClient()
+    col = client.create_collection("pytest_smoke")
+    col.add(
+        documents=["Astronaut hypoxemia oxygen protocol"],
+        metadatas=[{"tier": 1}],
+        ids=["p1"]
+    )
+    res = col.query(query_texts=["hypoxemia"], n_results=1)
+    assert len(res["ids"][0]) == 1
+    assert res["ids"][0][0] == "p1"
+    client.delete_collection("pytest_smoke")
+
+def test_mysql_port_reachable():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(2.0)
+    result = s.connect_ex(("127.0.0.1", 3306))
+    s.close()
+    assert result == 0, "MySQL port 3306 should be open"

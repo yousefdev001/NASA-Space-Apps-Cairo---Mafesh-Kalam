@@ -1,0 +1,43 @@
+{
+  "case_id": "GOLDEN-001",
+  "condition_id": "hypoxia",
+  "variant": "typical_critical",
+  "description": "Typical presentation of Acute Hypoxia with acute threshold violation.",
+  "expected_severity": "Critical",
+  "expected_escalation": true,
+  "expected_escalation_target": "Flight Surgeon",
+  "expected_query_keywords": [
+    "oxygen",
+    "mask",
+    "hypoxia"
+  ],
+  "request_payload": {
+    "request_id": "GOLDEN-001",
+    "astronaut_id": "ASTRO-EVAL-01",
+    "ml": {
+      "anomaly_label": 1,
+      "confidence_score": 0.96
+    },
+    "vitals": {
+      "heart_rate_bpm": 72.0,
+      "hrv_rmssd_ms": 52.0,
+      "spo2_percent": 85.0,
+      "body_temperature_c": 36.8,
+      "respiratory_rate_bpm": 14.0,
+      "systolic_bp_mmhg": 118.0,
+      "diastolic_bp_mmhg": 76.0,
+      "heart_rate_bpm_rolling_mean_60min": 72.0,
+      "heart_rate_bpm_rolling_std_60min": 2.5,
+      "hrv_rmssd_ms_rolling_mean_60min": 52.0,
+      "hrv_rmssd_ms_rolling_std_60min": 3.0,
+      "spo2_percent_rolling_mean_60min": 98.5,
+      "spo2_percent_rolling_std_60min": 0.4,
+      "body_temperature_c_rolling_mean_60min": 36.8,
+      "body_temperature_c_rolling_std_60min": 0.1,
+      "respiratory_rate_bpm_rolling_mean_60min": 14.0,
+      "respiratory_rate_bpm_rolling_std_60min": 1.0,
+      "request_id": "GOLDEN-001",
+      "astronaut_id": "ASTRO-EVAL-01"
+    }
+  }
+}
