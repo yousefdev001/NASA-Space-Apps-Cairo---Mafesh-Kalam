@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraMed — Houston Flight Surgeon Telemetry Console (NASA STD-3001)</title>
+  <meta name="description" content="Mission Control Ground Monitor Dashboard & Flight Surgeon Rescue AI for Artemis & Mars Crews">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2342E8FF'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+
+  <!-- Google Fonts: Space Grotesk, IBM Plex Sans Arabic, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Subtle High-Tech HUD Grid Background -->
+  <div class="hud-grid-overlay"></div>
+
+  <!-- ==========================================================================
+       Header & Live Telemetry Ribbon
+       ========================================================================== -->
+  <header class="header-telemetry-ribbon">
+    <div class="ribbon-inner">
+      <!-- Brand & Insignia -->
+      <div class="brand-section">
+        <div class="brand-insignia">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <h1>
+            <span data-i18n="dashboard_title">مركز القيادة والطب الفضائي — هيوستن</span>
+            <span class="brand-badge">NASA STD-3001</span>
+          </h1>
+          <p data-i18n="brand_sub">محطة مراقبة المؤشرات الحيوية لطاقم أوريون • NASA STD-3001</p>
+        </div>
+      </div>
+
+      <!-- Telemetry Live Beacon Status Pill -->
+      <div class="telemetry-beacon">
+        <div class="beacon-pulse">
+          <div class="pulse-dot" id="pulse-beacon-dot"></div>
+          <span class="beacon-text" id="pulse-beacon-text" data-i18n="live_label">بث حي</span>
+        </div>
+        <div class="beacon-divider"></div>
+        <div class="beacon-stat">
+          <span data-i18n="last_contact">آخر إشارة:</span>
+          <strong class="mono" id="last-ping-val">الآن</strong>
+        </div>
+        <div class="beacon-divider"></div>
+        <div class="beacon-stat">
+          <span data-i18n="packets_label">الحزم المستقبلة:</span>
+          <strong class="mono" id="packets-recv-val">1,420</strong>
+        </div>
+        <div class="beacon-divider"></div>
+        <div class="beacon-stat" style="color: var(--aura-cyan); font-weight: 700;">
+          <span data-i18n="dsn_status">اتصال شبكة الفضاء السحيق DSN اسمي</span>
+        </div>
+      </div>
+
+      <!-- Controls & Language Selector -->
+      <div class="header-actions">
+        <button class="btn-icon-subtle" id="sound-toggle-btn" title="تبديل المؤثرات الصوتية">🔊</button>
+        <button class="btn-pill-lang" id="lang-toggle-btn">English</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       Main Dashboard Grid Layout
+       ========================================================================== -->
+  <main class="dashboard-container">
+
+    <!-- Left & Center Column: Telemetry, ECG, Organs, Comms & Emergency Dock -->
+    <section class="telemetry-main-column">
+
+      <!-- Mission Dossier Bar -->
+      <div class="mission-dossier-bar">
+        <div class="astronaut-profile-summary">
+          <div class="astronaut-avatar-hud">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2a5 5 0 100 10 5 5 0 000-10zm-8 18c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6v2H4v-2z"/>
+            </svg>
+          </div>
+          <div class="astronaut-meta">
+            <h2>
+              <span id="ast-full-name">Commander Sarah Vance</span>
+              <span class="astronaut-id-tag mono" id="ast-id-badge">ASTRO-8492</span>
+            </h2>
+            <p id="ast-spacecraft">Orion Capsule // Artemis Lunar Gateway Node 1</p>
+          </div>
+        </div>
+
+        <div class="dossier-stats">
+          <div class="dossier-stat-item">
+            <span class="label" data-i18n="mission_label">المهمة</span>
+            <span class="val highlight" id="ast-mission">Artemis III Outpost</span>
+          </div>
+          <div class="dossier-stat-item">
+            <span class="label" data-i18n="mission_day">يوم المهمة</span>
+            <span class="val mono" id="ast-day">Day 42 / 180</span>
+          </div>
+          <div class="dossier-stat-item">
+            <span class="label" data-i18n="health_score">مؤشر الصحة العام</span>
+            <span class="val mono highlight" id="overall-score-val" style="font-size: 18px; color: var(--clinical-nominal);">96%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic Clinical Alert Container (Populated when Anomaly Triggered) -->
+      <div class="clinical-alert-container" id="clinical-alert-dock"></div>
+
+      <!-- Biometric Telemetry Metric HUD Grid -->
+      <div class="metrics-hud-grid">
+
+        <!-- 1. Heart Rate -->
+        <div class="corner-bracket-card metric-card">
+          <div class="metric-header">
+            <div class="metric-header-left">
+              <div class="metric-icon-box" style="--metric-color: var(--clinical-critical);">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </div>
+              <span class="metric-title">HEART RATE</span>
+            </div>
+            <span class="metric-status-chip" id="chip-heart-rate">NOMINAL</span>
+          </div>
+          <div class="metric-reading-row">
+            <span class="metric-value mono" id="val-heart-rate">74</span>
+            <span class="metric-unit">BPM</span>
+          </div>
+          <div class="metric-footer">
+            <span class="metric-trend stable">● NOMINAL SMR</span>
+            <span>Range: 60-100</span>
+          </div>
+        </div>
+
+        <!-- 2. Blood Oxygen SpO2 -->
+        <div class="corner-bracket-card metric-card">
+          <div class="metric-header">
+            <div class="metric-header-left">
+              <div class="metric-icon-box" style="--metric-color: var(--aura-cyan);">
+                <svg viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.784 1.399 8.165-7.333-3.856-7.333 3.856 1.399-8.165-5.934-5.784 8.2-1.192zm0 5.702l-2.185 4.428-4.886.71 3.536 3.446-.834 4.865 4.369-2.297 4.369 2.297-.834-4.865 3.536-3.446-4.886-.71z"/></svg>
+              </div>
+              <span class="metric-title">OXYGEN (SpO2)</span>
+            </div>
+            <span class="metric-status-chip" id="chip-spo2">NOMINAL</span>
+          </div>
+          <div class="metric-reading-row">
+            <span class="metric-value mono" id="val-spo2">98.2</span>
+            <span class="metric-unit">%</span>
+          </div>
+          <div class="metric-footer">
+            <span class="metric-trend stable">● ARTERIAL OPTIMAL</span>
+            <span>Target: &gt;95%</span>
+          </div>
+        </div>
+
+        <!-- 3. Blood Pressure -->
+        <div class="corner-bracket-card metric-card">
+          <div class="metric-header">
+            <div class="metric-header-left">
+              <div class="metric-icon-box" style="--metric-color: var(--aura-blue);">
+                <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1010 10A10 10 0 0012 2zm1 14.93V18h-2v-1.07A4 4 0 018.07 13H7v-2h1.07A4 4 0 0111 7.07V6h2v1.07A4 4 0 0115.93 11H17v2h-1.07A4 4 0 0113 16.93z"/></svg>
+              </div>
+              <span class="metric-title">BLOOD PRESSURE</span>
+            </div>
+            <span class="metric-status-chip" id="chip-blood-pressure">NOMINAL</span>
+          </div>
+          <div class="metric-reading-row">
+            <span class="metric-value mono" id="val-blood-pressure" style="font-size: 28px;">118/76</span>
+            <span class="metric-unit">mmHg</span>
+          </div>
+          <div class="metric-footer">
+            <span class="metric-trend stable">● HEMODYNAMIC SYNC</span>
+            <span>Norm: 120/80</span>
+          </div>
+        </div>
+
+        <!-- 4. Core Body Temperature -->
+        <div class="corner-bracket-card metric-card">
+          <div class="metric-header">
+            <div class="metric-header-left">
+              <div class="metric-icon-box" style="--metric-color: var(--clinical-caution);">
+                <svg viewBox="0 0 24 24"><path d="M15 13V5a3 3 0 00-6 0v8a5 5 0 106 0zm-3-9a1 1 0 011 1v3h-2V5a1 1 0 011-1z"/></svg>
+              </div>
+              <span class="metric-title">CORE TEMP</span>
+            </div>
+            <span class="metric-status-chip" id="chip-temperature">NOMINAL</span>
+          </div>
+          <div class="metric-reading-row">
+            <span class="metric-value mono" id="val-temperature">36.8</span>
+            <span class="metric-unit">°C</span>
+          </div>
+          <div class="metric-footer">
+            <span class="metric-trend stable">● THERMOREGULATORY</span>
+            <span>Norm: 36.5-37.5</span>
+          </div>
+        </div>
+
+        <!-- 5. Respiration Rate -->
+        <div class="corner-bracket-card metric-card">
+          <div class="metric-header">
+            <div class="metric-header-left">
+              <div class="metric-icon-box" style="--metric-color: var(--aura-mint);">
+                <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+              </div>
+              <span class="metric-title">RESPIRATION</span>
+            </div>
+            <span class="metric-status-chip" id="chip-respiration">NOMINAL</span>
+          </div>
+          <div class="metric-reading-row">
+            <span class="metric-value mono" id="val-respiration">16</span>
+            <span class="metric-unit">BrPM</span>
+          </div>
+          <div class="metric-footer">
+            <span class="metric-trend stable">● EUPNEA RHYTHM</span>
+            <span>Range: 12-20</span>
+          </div>
+        </div>
+
+        <!-- 6. Heart Rate Variability (HRV) -->
+        <div class="corner-bracket-card metric-card">
+          <div class="metric-header">
+            <div class="metric-header-left">
+              <div class="metric-icon-box" style="--metric-color: var(--aura-violet);">
+                <svg viewBox="0 0 24 24"><path d="M3 13h2.2l1.6-4.5 3.4 9 3.2-11 2.4 8.5 1.4-2H21v-2h-5.8l-1.4 2-2.6-9-3.2 11-2.4-6.5-2.2 2H3v2z"/></svg>
+              </div>
+              <span class="metric-title">HRV (RMSSD)</span>
+            </div>
+            <span class="metric-status-chip" id="chip-hrv">NOMINAL</span>
+          </div>
+          <div class="metric-reading-row">
+            <span class="metric-value mono" id="val-hrv">48</span>
+            <span class="metric-unit">ms</span>
+          </div>
+          <div class="metric-footer">
+            <span class="metric-trend stable">● AUTONOMIC TONE</span>
+            <span>Norm: &gt;30 ms</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ECG Waveform & Organ Efficiency Centerpiece -->
+      <div class="cardiac-telemetry-row">
+
+        <!-- Real-Time ECG Waveform Canvas -->
+        <div class="corner-bracket-card ecg-card">
+          <div class="section-head">
+            <div class="section-head-title">
+              <span class="hud-code" data-i18n="ecg_lead_tag">LEAD II • CONTINUOUS</span>
+              <h3 data-i18n="ecg_canvas_title">تخطيط القلب المباشر (ECG)</h3>
+            </div>
+            <span class="beacon-stat mono" style="color: var(--aura-cyan); font-weight: 700;">25 mm/s • 10 mm/mV</span>
+          </div>
+          <div class="ecg-canvas-wrapper">
+            <canvas id="ecg-canvas"></canvas>
+            <div class="ecg-overlay-hud">
+              <span class="ecg-hud-tag">NASA BIO-TELEMETRY HARNESS</span>
+              <span class="ecg-hud-tag mono">CALIBRATED // ARTIFACT-FREE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Organ Efficiency Atlas Mini-Radar -->
+        <div class="corner-bracket-card organ-radar-card">
+          <div class="section-head">
+            <div class="section-head-title">
+              <h3 data-i18n="organs_title">أطلس الأعضاء الحيوية</h3>
+            </div>
+            <span class="hud-code">5 ORGANS</span>
+          </div>
+
+          <div class="organs-grid">
+            <!-- Brain -->
+            <div class="organ-mini-pill" id="pill-organ-brain">
+              <div class="organ-pill-top">
+                <span class="organ-name">BRAIN</span>
+                <span class="organ-score mono" id="organ-brain-score">95%</span>
+              </div>
+              <span class="organ-system" id="organ-brain-metric">ICP 11.2 mmHg</span>
+            </div>
+
+            <!-- Heart -->
+            <div class="organ-mini-pill" id="pill-organ-heart">
+              <div class="organ-pill-top">
+                <span class="organ-name">HEART</span>
+                <span class="organ-score mono" id="organ-heart-score">96%</span>
+              </div>
+              <span class="organ-system" id="organ-heart-metric">HR 74 BPM</span>
+            </div>
+
+            <!-- Lungs -->
+            <div class="organ-mini-pill" id="pill-organ-lungs">
+              <div class="organ-pill-top">
+                <span class="organ-name">LUNGS</span>
+                <span class="organ-score mono" id="organ-lungs-score">98%</span>
+              </div>
+              <span class="organ-system" id="organ-lungs-metric">SpO2 98.2%</span>
+            </div>
+
+            <!-- Liver -->
+            <div class="organ-mini-pill" id="pill-organ-liver">
+              <div class="organ-pill-top">
+                <span class="organ-name">LIVER</span>
+                <span class="organ-score mono" id="organ-liver-score">93%</span>
+              </div>
+              <span class="organ-system" id="organ-liver-metric">ALT 24 U/L</span>
+            </div>
+
+            <!-- Kidneys -->
+            <div class="organ-mini-pill" id="pill-organ-kidneys" style="grid-column: span 2;">
+              <div class="organ-pill-top">
+                <span class="organ-name">KIDNEYS & FLUID FILTRATION</span>
+                <span class="organ-score mono" id="organ-kidneys-score">95%</span>
+              </div>
+              <span class="organ-system" id="organ-kidneys-metric">eGFR 102 mL/min • Fluid Balance Stable</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Two-Way Houston Ground Comms Console -->
+      <div class="corner-bracket-card ground-comms-card">
+        <div class="section-head">
+          <div class="section-head-title">
+            <h3 data-i18n="ground_comms_title">قناة الاتصال المباشر مع الرائد (Ground Comms)</h3>
+          </div>
+          <span class="hud-code" style="color: var(--clinical-nominal);">DSN CHANNEL 4 ACTIVE</span>
+        </div>
+
+        <div class="comms-history-box" id="comms-history-box"></div>
+
+        <form class="comms-input-row" id="ground-comms-form">
+          <input
+            type="text"
+            id="ground-comms-input"
+            class="comms-input-field"
+            placeholder="أرسل توجيهاً سريرياً أو رسالة صوتية لرائد الفضاء..."
+            data-i18n-ph="comms_placeholder"
+            autocomplete="off"
+          />
+          <button type="submit" class="btn-transmit" data-i18n="btn_transmit">إرسال للأوريون</button>
+        </form>
+      </div>
+
+      <!-- Simulation Injection Dock (For Testing Emergencies) -->
+      <div class="sim-injection-dock">
+        <div class="sim-dock-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--aura-cyan)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          <span data-i18n="sim_title">محاكاة الحالات الطارئة للاختبار:</span>
+        </div>
+        <div class="sim-buttons-group">
+          <button class="btn-sim-chip" data-scenario="nominal" data-i18n="sim_nominal">طبيعي مستقر</button>
+          <button class="btn-sim-chip critical-sim" data-scenario="hypoxia" data-i18n="sim_hypoxia">🚨 نقص الأكسجين (Hypoxia)</button>
+          <button class="btn-sim-chip critical-sim" data-scenario="cardiac" data-i18n="sim_cardiac">⚡ تسارع القلب (Cardiac)</button>
+          <button class="btn-sim-chip critical-sim" data-scenario="heat_stress" data-i18n="sim_heat">🔥 إجهاد حراري (Heat Stress)</button>
+          <button class="btn-sim-chip critical-sim" data-scenario="hypothermia" data-i18n="sim_hypothermia">❄️ انخفاض الحرارة (Hypothermia)</button>
+          <button class="btn-sim-chip critical-sim" data-scenario="hypercapnia" data-i18n="sim_hypercapnia">💨 غاز CO2 سام (Hypercapnia)</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Right Column: Flight Surgeon Rescue AI Co-Pilot (Houston Medical Command Deck) -->
+    <aside class="rescue-ai-column">
+
+      <div class="corner-bracket-card rescue-ai-panel">
+        <!-- AI Header -->
+        <div class="ai-header">
+          <div class="ai-header-left">
+            <div class="ai-avatar">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2M7.5 13A2.5 2.5 0 005 15.5 2.5 2.5 0 007.5 18a2.5 2.5 0 002.5-2.5A2.5 2.5 0 007.5 13m9 0a2.5 2.5 0 00-2.5 2.5 2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5 2.5 2.5 0 00-2.5-2.5z"/>
+              </svg>
+            </div>
+            <div class="ai-titles">
+              <h3>
+                <span data-i18n="ai_title">مساعد الإنقاذ السريري لمركز التحكم</span>
+                <span class="ai-badge">GROUND CO-PILOT</span>
+              </h3>
+              <p data-i18n="ai_sub">ذكاء اصطناعي سريري مخصص لإنقاذ الرائد فوراً</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Emergency Action Prompts -->
+        <div class="ai-quick-pills">
+          <button class="ai-quick-chip" data-query="بروتوكول التعامل الفوري مع نقص الأكسجين الحاد Hypoxia">🚨 Acute Hypoxia</button>
+          <button class="ai-quick-chip" data-query="تسارع ضربات القلب فوق 140 BPM مع إجهاد فسيولوجي">⚡ Tachycardia</button>
+          <button class="ai-quick-chip" data-query="ارتفاع درجة حرارة الجسد وإجهاد حراري داخل بذلة السير الفضائي EVA">🔥 EVA Heat Stroke</button>
+          <button class="ai-quick-chip" data-query="قائمة الجرعات الدوائية الطارئة الموصى بها في حقيبة أوريون">💊 Pharmacopeia</button>
+          <button class="ai-quick-chip" data-query="علاج دوار الحركة الفضائي الحاد والغثيان في انعدام الوزن">🤢 SAS Nausea</button>
+        </div>
+
+        <!-- Scrollable AI Chat Feed -->
+        <div class="ai-chat-feed" id="ai-chat-feed"></div>
+
+        <!-- AI Query Input Form -->
+        <form class="ai-input-form" id="ai-chat-form">
+          <input
+            type="text"
+            id="ai-input-field"
+            class="ai-input-field"
+            placeholder="اسأل عن بروتوكولات الإنقاذ، الجرعات، وإجراءات الطوارئ..."
+            data-i18n-ph="ai_placeholder"
+            autocomplete="off"
+          />
+          <button type="submit" class="btn-ai-send" data-i18n="ai_btn_send">استشارة</button>
+        </form>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- Application Scripts -->
+  <script src="js/ecg-canvas.js"></script>
+  <script src="js/rescue-bot.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

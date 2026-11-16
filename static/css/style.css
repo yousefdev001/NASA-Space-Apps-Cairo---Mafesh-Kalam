@@ -1,0 +1,1342 @@
+/* ==========================================================================
+   AuraMed — Visual Design System (Clinical Space HUD)
+   NASA STD-3001 Compliant Ground Flight Surgeon Dashboard
+   ========================================================================== */
+
+:root {
+  /* Backgrounds */
+  --space-void: #050816;
+  --space-deep: #081126;
+  --space-panel: #0D1933;
+  --space-panel-elevated: #122343;
+  --space-overlay: #182B4F;
+  --space-line: #28436A;
+
+  /* Brand / Accents */
+  --aura-cyan: #42E8FF;
+  --aura-blue: #4B7BFF;
+  --aura-violet: #A66CFF;
+  --aura-pink: #F05CFF;
+  --aura-mint: #62F5C2;
+
+  /* Clinical States */
+  --clinical-nominal: #62F5C2;
+  --clinical-caution: #FFD166;
+  --clinical-critical: #FF5C70;
+  --clinical-info: #65A9FF;
+  --clinical-disabled: #66738A;
+
+  /* Typography Colors */
+  --text-primary: #F4F8FF;
+  --text-secondary: #A9B8D0;
+  --text-muted: #71819A;
+  --text-on-accent: #04101E;
+
+  /* Spacing Grid (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Radii */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 9999px;
+
+  /* Gradients */
+  --bg-gradient: linear-gradient(145deg, #050816 0%, #081126 55%, #0B1630 100%);
+  --primary-action-gradient: linear-gradient(100deg, #42E8FF 0%, #4B7BFF 100%);
+  --ai-advisor-gradient: linear-gradient(100deg, #4B7BFF 0%, #A66CFF 100%);
+  --glass-card-bg: rgba(13, 25, 51, 0.94);
+}
+
+/* Base Reset & Fonts */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Space Grotesk', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  font-family: 'IBM Plex Sans Arabic', 'Space Grotesk', system-ui, sans-serif;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Subtle Cosmic Grid Background Overlay */
+.hud-grid-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(40, 67, 106, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(40, 67, 106, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ==========================================================================
+   Header & Live Telemetry Ribbon
+   ========================================================================== */
+.header-telemetry-ribbon {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(8, 17, 38, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--space-line);
+  padding: var(--space-3) var(--space-6);
+}
+
+.ribbon-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1720px;
+  margin: 0 auto;
+  gap: var(--space-4);
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brand-insignia {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, rgba(66, 232, 255, 0.2), rgba(75, 123, 255, 0.3));
+  border: 1.5px solid var(--aura-cyan);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 16px rgba(66, 232, 255, 0.25);
+}
+
+.brand-insignia svg {
+  width: 24px;
+  height: 24px;
+  fill: var(--aura-cyan);
+}
+
+.brand-titles h1 {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.brand-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--aura-cyan);
+  background: rgba(66, 232, 255, 0.12);
+  border: 1px solid rgba(66, 232, 255, 0.4);
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.5px;
+}
+
+.brand-titles p {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Center Live Telemetry Pill */
+.telemetry-beacon {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  background: var(--space-panel);
+  border: 1px solid var(--space-line);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+}
+
+.beacon-pulse {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pulse-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--clinical-nominal);
+  box-shadow: 0 0 10px var(--clinical-nominal);
+  animation: beacon-blink 1.8s infinite ease-in-out;
+}
+
+.pulse-dot.caution {
+  background-color: var(--clinical-caution);
+  box-shadow: 0 0 10px var(--clinical-caution);
+}
+
+.pulse-dot.critical {
+  background-color: var(--clinical-critical);
+  box-shadow: 0 0 12px var(--clinical-critical);
+}
+
+@keyframes beacon-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.beacon-text {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--clinical-nominal);
+}
+
+.beacon-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--space-line);
+}
+
+.beacon-stat {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.beacon-stat strong {
+  color: var(--text-primary);
+}
+
+/* Header Controls & Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.btn-icon-subtle {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--space-panel);
+  border: 1px solid var(--space-line);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon-subtle:hover {
+  background: var(--space-panel-elevated);
+  color: var(--aura-cyan);
+  border-color: var(--aura-cyan);
+}
+
+.btn-icon-subtle.active {
+  color: var(--aura-cyan);
+  border-color: var(--aura-cyan);
+  box-shadow: 0 0 10px rgba(66, 232, 255, 0.2);
+}
+
+.btn-pill-lang {
+  background: var(--space-panel);
+  border: 1px solid var(--space-line);
+  color: var(--aura-cyan);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-pill-lang:hover {
+  border-color: var(--aura-cyan);
+  background: rgba(66, 232, 255, 0.1);
+}
+
+/* ==========================================================================
+   Main Application Layout
+   ========================================================================== */
+.dashboard-container {
+  max-width: 1720px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-6);
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: var(--space-6);
+}
+
+@media (max-width: 1280px) {
+  .dashboard-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   CornerBracketCard (Core Design System Component)
+   ========================================================================== */
+.corner-bracket-card {
+  position: relative;
+  background: var(--glass-card-bg);
+  border: 1px solid var(--space-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: 0 8px 24px rgba(5, 8, 22, 0.4);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Cyber Brackets (Top-Left & Bottom-Right) */
+.corner-bracket-card::before,
+.corner-bracket-card::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  transition: border-color 0.25s ease;
+}
+
+.corner-bracket-card::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2.5px solid var(--bracket-color, var(--aura-cyan));
+  border-left: 2.5px solid var(--bracket-color, var(--aura-cyan));
+  border-top-left-radius: var(--radius-md);
+}
+
+.corner-bracket-card::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2.5px solid var(--bracket-color, var(--aura-cyan));
+  border-right: 2.5px solid var(--bracket-color, var(--aura-cyan));
+  border-bottom-right-radius: var(--radius-md);
+}
+
+[dir="rtl"] .corner-bracket-card::before {
+  left: auto;
+  right: -1px;
+  border-left: none;
+  border-right: 2.5px solid var(--bracket-color, var(--aura-cyan));
+  border-top-left-radius: 0;
+  border-top-right-radius: var(--radius-md);
+}
+
+[dir="rtl"] .corner-bracket-card::after {
+  right: auto;
+  left: -1px;
+  border-right: none;
+  border-left: 2.5px solid var(--bracket-color, var(--aura-cyan));
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.corner-bracket-card.caution {
+  --bracket-color: var(--clinical-caution);
+  border-color: rgba(255, 209, 102, 0.4);
+}
+
+.corner-bracket-card.critical {
+  --bracket-color: var(--clinical-critical);
+  border-color: rgba(255, 92, 112, 0.6);
+  box-shadow: 0 8px 30px rgba(255, 92, 112, 0.15);
+}
+
+/* ==========================================================================
+   Mission Dossier Bar
+   ========================================================================== */
+.mission-dossier-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  background: var(--space-panel);
+  border: 1px solid var(--space-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+.astronaut-profile-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.astronaut-avatar-hud {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--space-deep);
+  border: 2px solid var(--aura-cyan);
+  padding: 3px;
+  box-shadow: 0 0 16px rgba(66, 232, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.astronaut-avatar-hud svg {
+  width: 32px;
+  height: 32px;
+  fill: var(--aura-cyan);
+}
+
+.astronaut-meta h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.astronaut-id-tag {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-on-accent);
+  background: var(--aura-cyan);
+  padding: 1px 7px;
+  border-radius: 4px;
+}
+
+.astronaut-meta p {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.dossier-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.dossier-stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.dossier-stat-item .label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.dossier-stat-item .val {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dossier-stat-item .val.highlight {
+  color: var(--aura-cyan);
+}
+
+/* ==========================================================================
+   Clinical Alert Banner (When Anomaly Detected)
+   ========================================================================== */
+.clinical-alert-container {
+  margin-bottom: var(--space-5);
+}
+
+.clinical-alert-card {
+  position: relative;
+  background: var(--space-panel);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  border: 1px solid var(--clinical-critical);
+  border-left-width: 6px;
+  box-shadow: 0 0 30px rgba(255, 92, 112, 0.2);
+}
+
+[dir="rtl"] .clinical-alert-card {
+  border-left-width: 1px;
+  border-right-width: 6px;
+}
+
+.alert-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 92, 112, 0.15);
+  border: 1px solid var(--clinical-critical);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.alert-icon-box svg {
+  width: 24px;
+  height: 24px;
+  fill: var(--clinical-critical);
+  animation: pulse-alert-icon 1.5s infinite;
+}
+
+@keyframes pulse-alert-icon {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.alert-body {
+  flex: 1;
+}
+
+.alert-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-1);
+}
+
+.alert-header-row h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--clinical-critical);
+  letter-spacing: 0.6px;
+}
+
+.alert-badge {
+  font-size: 10px;
+  font-weight: 800;
+  background: var(--clinical-critical);
+  color: #000;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.alert-summary {
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+/* Alert Checklist Steps */
+.alert-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.alert-step-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--space-deep);
+  border: 1px solid rgba(255, 92, 112, 0.3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+}
+
+.alert-step-check {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--clinical-critical);
+}
+
+.alert-step-item.checked {
+  opacity: 0.55;
+  text-decoration: line-through;
+  border-color: var(--space-line);
+}
+
+.alert-step-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.alert-step-ref {
+  font-size: 10px;
+  color: var(--aura-cyan);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Metrics Grid (Biometric Vitals)
+   ========================================================================== */
+.metrics-hud-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.metric-card {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
+}
+
+.metric-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metric-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.metric-icon-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--space-deep);
+  border: 1px solid var(--space-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric-icon-box svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--metric-color, var(--aura-cyan));
+}
+
+.metric-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+}
+
+.metric-status-chip {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(98, 245, 194, 0.15);
+  color: var(--clinical-nominal);
+  border: 1px solid rgba(98, 245, 194, 0.4);
+}
+
+.metric-status-chip.caution {
+  background: rgba(255, 209, 102, 0.15);
+  color: var(--clinical-caution);
+  border-color: rgba(255, 209, 102, 0.4);
+}
+
+.metric-status-chip.critical {
+  background: rgba(255, 92, 112, 0.2);
+  color: var(--clinical-critical);
+  border-color: rgba(255, 92, 112, 0.6);
+}
+
+.metric-reading-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+}
+
+.metric-value {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.metric-unit {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.metric-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+  border-top: 1px solid rgba(40, 67, 106, 0.4);
+  padding-top: var(--space-2);
+}
+
+.metric-trend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 700;
+}
+
+.metric-trend.up { color: var(--clinical-critical); }
+.metric-trend.stable { color: var(--clinical-nominal); }
+.metric-trend.down { color: var(--clinical-info); }
+
+/* ==========================================================================
+   ECG Waveform & Holographic Heart Centerpiece
+   ========================================================================== */
+.cardiac-telemetry-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+@media (max-width: 900px) {
+  .cardiac-telemetry-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ecg-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.section-head-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.section-head-title h3 {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.hud-code {
+  font-size: 10px;
+  color: var(--aura-cyan);
+  font-weight: 700;
+  background: rgba(66, 232, 255, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.ecg-canvas-wrapper {
+  position: relative;
+  background: #02050E;
+  border: 1px solid var(--space-line);
+  border-radius: var(--radius-sm);
+  height: 180px;
+  overflow: hidden;
+}
+
+#ecg-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ecg-overlay-hud {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+[dir="rtl"] .ecg-overlay-hud {
+  left: 12px;
+  right: 12px;
+}
+
+.ecg-hud-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--aura-cyan);
+  background: rgba(5, 8, 22, 0.7);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(66, 232, 255, 0.3);
+}
+
+/* Organ Assessment Radar Box */
+.organ-radar-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.organs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.organ-mini-pill {
+  background: var(--space-deep);
+  border: 1px solid var(--space-line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.organ-mini-pill:hover {
+  border-color: var(--aura-cyan);
+  background: var(--space-panel-elevated);
+}
+
+.organ-pill-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.organ-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.organ-score {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--clinical-nominal);
+}
+
+.organ-score.caution { color: var(--clinical-caution); }
+.organ-score.critical { color: var(--clinical-critical); }
+
+.organ-system {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   Two-Way Houston Ground Comms Box
+   ========================================================================== */
+.ground-comms-card {
+  margin-bottom: var(--space-5);
+}
+
+.comms-history-box {
+  background: #040817;
+  border: 1px solid var(--space-line);
+  border-radius: var(--radius-sm);
+  height: 220px;
+  overflow-y: auto;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.comms-msg-item {
+  display: flex;
+  flex-direction: column;
+  max-width: 82%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+}
+
+.comms-msg-item.ground {
+  align-self: flex-start;
+  background: var(--space-panel-elevated);
+  border: 1px solid var(--space-line);
+  border-left: 3px solid var(--aura-blue);
+}
+
+[dir="rtl"] .comms-msg-item.ground {
+  border-left: 1px solid var(--space-line);
+  border-right: 3px solid var(--aura-blue);
+}
+
+.comms-msg-item.astronaut {
+  align-self: flex-end;
+  background: rgba(66, 232, 255, 0.08);
+  border: 1px solid rgba(66, 232, 255, 0.35);
+  border-right: 3px solid var(--aura-cyan);
+}
+
+[dir="rtl"] .comms-msg-item.astronaut {
+  border-right: 1px solid rgba(66, 232, 255, 0.35);
+  border-left: 3px solid var(--aura-cyan);
+}
+
+.comms-msg-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.comms-msg-sender {
+  color: var(--aura-cyan);
+}
+
+.comms-msg-time {
+  color: var(--text-muted);
+}
+
+.comms-input-row {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.comms-input-field {
+  flex: 1;
+  background: var(--space-deep);
+  border: 1px solid var(--space-line);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.comms-input-field:focus {
+  border-color: var(--aura-cyan);
+  box-shadow: 0 0 10px rgba(66, 232, 255, 0.2);
+}
+
+.btn-transmit {
+  background: var(--primary-action-gradient);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0 20px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.8px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.btn-transmit:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Simulation Injection Dock
+   ========================================================================== */
+.sim-injection-dock {
+  background: var(--space-deep);
+  border: 1px solid var(--space-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.sim-dock-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.sim-buttons-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.btn-sim-chip {
+  background: var(--space-panel);
+  border: 1px solid var(--space-line);
+  color: var(--text-secondary);
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-sim-chip:hover {
+  border-color: var(--aura-cyan);
+  color: var(--text-primary);
+}
+
+.btn-sim-chip.critical-sim:hover {
+  border-color: var(--clinical-critical);
+  color: var(--clinical-critical);
+  background: rgba(255, 92, 112, 0.1);
+}
+
+/* ==========================================================================
+   Right Column: Ground Flight Surgeon Rescue AI Co-Pilot
+   (Dedicated exclusively to helping the MONITOR save the astronaut faster!)
+   ========================================================================== */
+.rescue-ai-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.rescue-ai-panel {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+  position: sticky;
+  top: 86px;
+  border-color: rgba(166, 108, 255, 0.4);
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--space-line);
+  margin-bottom: var(--space-3);
+}
+
+.ai-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.ai-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(75, 123, 255, 0.3), rgba(166, 108, 255, 0.4));
+  border: 1.5px solid var(--aura-violet);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 16px rgba(166, 108, 255, 0.3);
+}
+
+.ai-avatar svg {
+  width: 22px;
+  height: 22px;
+  fill: var(--aura-violet);
+}
+
+.ai-titles h3 {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ai-badge {
+  font-size: 9px;
+  font-weight: 800;
+  color: #000;
+  background: var(--aura-violet);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.ai-titles p {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+/* Quick Emergency Prompt Chips */
+.ai-quick-pills {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  scrollbar-width: thin;
+}
+
+.ai-quick-chip {
+  background: var(--space-deep);
+  border: 1px solid var(--space-line);
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-quick-chip:hover {
+  border-color: var(--aura-violet);
+  color: var(--text-primary);
+  background: rgba(166, 108, 255, 0.12);
+}
+
+/* AI Chat Feed Scroll */
+.ai-chat-feed {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-right: var(--space-1);
+}
+
+/* Structured AI Rescue Cards */
+.ai-response-card {
+  background: var(--space-deep);
+  border: 1px solid rgba(166, 108, 255, 0.35);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ai-response-card.critical {
+  border-color: rgba(255, 92, 112, 0.6);
+  border-left-width: 4px;
+}
+
+[dir="rtl"] .ai-response-card.critical {
+  border-left-width: 1px;
+  border-right-width: 4px;
+}
+
+.ai-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-card-title-row h4 {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--aura-violet);
+  letter-spacing: 0.5px;
+}
+
+.ai-card-title-row h4.critical {
+  color: var(--clinical-critical);
+}
+
+.ai-vitals-mini-bar {
+  display: flex;
+  gap: var(--space-3);
+  background: rgba(5, 8, 22, 0.6);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.ai-section-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--aura-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 2px;
+}
+
+.ai-action-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-action-step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.ai-step-num {
+  font-size: 10px;
+  font-weight: 800;
+  background: var(--space-panel-elevated);
+  border: 1px solid var(--space-line);
+  color: var(--aura-cyan);
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ai-pharma-box {
+  background: rgba(240, 92, 255, 0.08);
+  border: 1px dashed rgba(240, 92, 255, 0.35);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: 11.5px;
+  color: #F8C0FF;
+}
+
+.ai-radio-directive {
+  background: rgba(66, 232, 255, 0.08);
+  border: 1px solid rgba(66, 232, 255, 0.3);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
+
+.ai-radio-directive-text {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-style: italic;
+  margin-bottom: var(--space-2);
+}
+
+.btn-copy-radio {
+  background: var(--aura-cyan);
+  color: var(--text-on-accent);
+  border: none;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ai-citations-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+
+/* User Message inside AI Feed */
+.user-query-card {
+  align-self: flex-end;
+  background: var(--space-panel-elevated);
+  border: 1px solid var(--space-line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  font-size: 12.5px;
+  max-width: 90%;
+  color: var(--text-primary);
+}
+
+/* AI Input Bar */
+.ai-input-form {
+  display: flex;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--space-line);
+}
+
+.ai-input-field {
+  flex: 1;
+  background: var(--space-deep);
+  border: 1px solid var(--space-line);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-family: inherit;
+  outline: none;
+}
+
+.ai-input-field:focus {
+  border-color: var(--aura-violet);
+  box-shadow: 0 0 10px rgba(166, 108, 255, 0.25);
+}
+
+.btn-ai-send {
+  background: var(--ai-advisor-gradient);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0 18px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.btn-ai-send:hover {
+  opacity: 0.9;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--space-void);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--space-line);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--aura-cyan);
+}
