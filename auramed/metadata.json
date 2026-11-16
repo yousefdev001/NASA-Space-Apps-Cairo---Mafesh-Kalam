@@ -1,0 +1,6 @@
+{
+  "name": "AuraMed",
+  "description": "Kinetic brutalist landing page and orbital telemetry showcase for AuraMed, a real-time astronaut biometric and EVA suit monitoring system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

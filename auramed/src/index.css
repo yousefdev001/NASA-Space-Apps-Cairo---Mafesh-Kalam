@@ -1,0 +1,159 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: "Kalam", cursive;
+  --font-sans: "Patrick Hand", cursive;
+  --font-mono: "Patrick Hand", cursive;
+  --color-paper-bg: #fdfbf7;
+  --color-pencil-ink: #2d2d2d;
+  --color-old-paper: #e5e0d8;
+  --color-marker-red: #ff4d4d;
+  --color-ballpoint-blue: #2d5da1;
+  --color-postit-yellow: #fff9c4;
+  --color-kinetic-orange: #ff4d00;
+}
+
+@layer base {
+  :root {
+    --hd-bg: #fdfbf7;
+    --hd-fg: #2d2d2d;
+    --hd-muted: #e5e0d8;
+    --hd-accent: #ff4d4d;
+    --hd-secondary: #2d5da1;
+    --hd-card: #ffffff;
+    --hd-note: #fff9c4;
+    --hd-dot: #d6cfc2;
+    --hd-shadow: #2d2d2d;
+  }
+
+  .dark {
+    --hd-bg: #000000;
+    --hd-fg: #ffffff;
+    --hd-muted: #16161a;
+    --hd-accent: #ff4d00;
+    --hd-secondary: #ff4d00;
+    --hd-card: #0c0c10;
+    --hd-note: #18110c;
+    --hd-dot: rgba(255, 77, 0, 0.25);
+    --hd-shadow: #ff4d00;
+  }
+
+  ::selection {
+    background-color: var(--hd-accent);
+    color: #ffffff;
+  }
+
+  html,
+  body {
+    background-color: var(--hd-bg);
+    color: var(--hd-fg);
+    font-family: "Patrick Hand", cursive;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+.paper-grain {
+  background-color: var(--hd-bg);
+  background-image: radial-gradient(var(--hd-dot) 1.15px, transparent 1.15px);
+  background-size: 24px 24px;
+}
+
+/* Hard offset cut-paper shadows — zero blur */
+.sketch-shadow {
+  box-shadow: 4px 4px 0px 0px var(--hd-shadow);
+}
+
+.sketch-shadow-lg {
+  box-shadow: 8px 8px 0px 0px var(--hd-shadow);
+}
+
+.sketch-shadow-card {
+  box-shadow: 4px 4px 0px 0px rgba(45, 45, 45, 0.14);
+}
+
+.dark .sketch-shadow-card {
+  box-shadow: 4px 4px 0px 0px rgba(255, 77, 0, 0.35);
+}
+
+.sketch-btn {
+  transition: transform 100ms ease, box-shadow 100ms ease, background-color 120ms ease, color 120ms ease;
+  box-shadow: 4px 4px 0px 0px var(--hd-shadow);
+}
+
+.sketch-btn:hover {
+  box-shadow: 2px 2px 0px 0px var(--hd-shadow);
+  transform: translate(2px, 2px);
+}
+
+.sketch-btn:active {
+  box-shadow: 0px 0px 0px 0px var(--hd-shadow);
+  transform: translate(4px, 4px);
+}
+
+@keyframes marquee-left {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes marquee-right {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0%, 0, 0);
+  }
+}
+
+@keyframes spin-linear {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gentle-bounce-3s {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+.animate-marquee-left {
+  animation: marquee-left 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-right {
+  animation: marquee-right 32s linear infinite;
+  will-change: transform;
+}
+
+.animate-spin-12s {
+  animation: spin-linear 12s linear infinite;
+  will-change: transform;
+}
+
+.animate-bounce-3s {
+  animation: gentle-bounce-3s 3s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-left,
+  .animate-marquee-right,
+  .animate-spin-12s,
+  .animate-bounce-3s {
+    animation: none;
+  }
+}

@@ -1,0 +1,402 @@
+# 🛰️ وثيقة المعمارية والشاشات والكمبوننتس — AuraMed NASA System
+> **مشروع AuraMed**: نظام المراقبة الطبية ودعم القرار السريري التلقائي لرواد الفضاء في مهام الفضاء العميق (NASA STD-3001 Compliant).  
+> **تاريخ التوليد**: نوفمبر 2026 | **بيئة التطوير**: Flutter 3.38.5 / Dart 3.10.7
+
+---
+
+## 📑 فهرس المحتويات
+1. [الهيكل العام وتقسيم الطبقات (Layout Hierarchy & Stacking)](#1-الهيكل-العام-وتقسيم-الطبقات-layout-hierarchy--stacking)
+2. [سجل الشاشات الحالية في التطبيق (Screens Catalog)](#2-سجل-الشاشات-الحالية-في-التطبيق-screens-catalog)
+   - [شاشات البدء والدخول (Entry & Authentication)](#شاشات-البدء-والدخول-entry--authentication)
+   - [الهيكل والتبويبات الرئيسية الخمسة (Main 5 Tabs)](#الهيكل-والتبويبات-الرئيسية-الخمسة-main-5-tabs)
+   - [شاشات التلعيب والتدريب المعرفي (Cognitive Gamification Screens)](#شاشات-التلعيب-والتدريب-المعرفي-cognitive-gamification-screens)
+   - [شاشات كبسولة الذكريات النفسية (Earth Memories Journal)](#شاشات-كبسولة-الذكريات-النفسية-earth-memories-journal)
+   - [شاشات المحادثة والاتصال الفضائي (Comms & AI Advisor)](#شاشات-المحادثة-والاتصال-الفضائي-comms--ai-advisor)
+   - [شاشة المهام والترقية (Missions & Level Up)](#شاشة-المهام-والترقية-missions--level-up)
+3. [مكتبة الكمبوننتس الأساسية المشتركة (Core Reusable Components)](#3-مكتبة-الكمبوننتس-الأساسية-المشتركة-core-reusable-components)
+4. [الكمبوننتس الفرعية والـ Modals والقوائم السفلية (Feature Widgets & Modals)](#4-الكمبوننتس-الفرعية-والـ-modals-والقوائم-السفلية-feature-widgets--modals)
+5. [المساعد الفضائي العائم (AuraBot Floating Companion)](#5-المساعد-الفضائي-العائم-aurabot-floating-companion)
+6. [خريطة تدفق الشاشات وإدارة الحالة (Flow & State Management Map)](#6-خريطة-تدفق-الشاشات-وإدارة-الحالة-flow--state-management-map)
+
+---
+
+## 1. الهيكل العام وتقسيم الطبقات (Layout Hierarchy & Stacking)
+
+يتبع التطبيق هيكل عرض مقيّد أفقياً حتى 440px كشاسيه طبي فضائي مع ظل نيون هولوجرافي ليناسب بيئات الويب وشاشات الأجهزة اللوحية والمحمولة، مع معمارية تكديس الطبقات التالية في [main_navigation_shell.dart](file:///d:/Nasa/lib/features/shell/main_navigation_shell.dart):
+
+```mermaid
+flowchart TD
+    subgraph Root Chassis [Root Chassis: Max-Width 440px Dark Container]
+        subgraph Layer 0 [Layer 0: IndexedStack Screens]
+            T0[Tab 0: HomeDashboardScreen]
+            T1[Tab 1: Medical2DBodyScreen]
+            T2[Tab 2: HealthAnalysisScreen]
+            T3[Tab 3: GamificationScreen]
+            T4[Tab 4: ProfileScreen]
+        end
+        subgraph Layer 1 [Layer 1: Floating Overlay]
+            Bot[FloatingAstroCompanion: روبوت أورا التفاعلي القابل للسحب والتحدث]
+        end
+        subgraph Layer 2 [Layer 2: Fixed Floating Navigation]
+            Nav[CustomBottomNav: شريط تنقل زجاجي عائم 5 أزرار]
+        end
+    end
+```
+
+---
+
+## 2. سجل الشاشات الحالية في التطبيق (Screens Catalog)
+
+### شاشات البدء والدخول (Entry & Authentication)
+
+#### 1. شاشة التحميل السينمائية — `AuraMedSplashScreen`
+- **الملف**: [splash_screen.dart](file:///d:/Nasa/lib/features/splash/splash_screen.dart)
+- **الوظيفة**: عرض فيديو سينمائي تمهيدي عالي الدقة يوضح بدء إقلاع أنظمة أوراميد الطبية مع صوت واقعي ومؤقت احتياطي في حال بطء التهيئة، ثم الانتقال السلس إلى بوابة الدخول.
+- **تقسيمة العناصر الداخلية**:
+  - `VideoPlayer`: مشغل فيديو أصول `assets/videos/splash_screen.mp4`.
+  - `FadeTransition`: طبقة تلاشي تدريجي سلسة لنهاية الفيديو.
+  - `Fallback Loading Indicator`: في حال عدم دعم ترميز الفيديو على منصات معينة مع شريط تقدم نيوني.
+
+#### 2. شاشة تسجيل الدخول — `LoginScreen`
+- **الملف**: [login_screen.dart](file:///d:/Nasa/lib/features/auth/screens/login_screen.dart)
+- **الوظيفة**: مصادقة رائد الفضاء مع دعم حساب تجريبي تلقائي فوري وزر تعبئة سريع للبيانات.
+- **تقسيمة العناصر الداخلية**:
+  - **خلفية هولوجرافية**: حلقات ضوئية دائرية متوهجة بلوني الأزرق السيبراني والأرجواني.
+  - **العنوان والرأس**: شعار أوراميد الفضائي، ووسم حالة الربط بالمحطة.
+  - **حاوية النموذج (CornerBracketCard)**:
+    - حقل إدخال البريد / معرف الرائد (Email / Astronaut ID) مع أيقونة تفاعلية.
+    - حقل إدخال كلمة المرور المشفرة مع زر إظهار/إخفاء.
+    - رسالة فحص وتنبيه الخطأ الميداني المباشر.
+  - **أزرار الإجراءات**:
+    - `FuturisticButton` للدخول الرسمي ("AUTHENTICATE").
+    - زر الديمو السريع ("Fill Demo Astronaut").
+    - رابط التسجيل لضم رائد جديد.
+
+#### 3. شاشة تسجيل رائد فضاء جديد — `RegisterScreen`
+- **الملف**: [register_screen.dart](file:///d:/Nasa/lib/features/auth/screens/register_screen.dart)
+- **الوظيفة**: تسجيل ملف طبي ومهماتي كامل لرائد فضاء جديد مع حفظها محلياً في قاعدة البيانات المشفرة `OfflineDatabaseService`.
+- **تقسيمة العناصر الداخلية**:
+  - **شريط علوي (AppBar)**: زر رجوع بتصميم سيبراني وعنوان "Astronaut Registration".
+  - **حقول البيانات الشخصية**:
+    - الاسم الكامل (Full Name).
+    - الرقم التعريفي لرائد الفضاء (Astronaut ID مثل `NASA-AST-2026`).
+    - اسم المهمة الفضائية (مثل `Artemis Gateway-IV`).
+    - البريد الإلكتروني وكلمة المرور.
+    - تاريخ الميلاد واختيار الجنس (Gender Selector).
+  - **زر التسجيل النهائي**: `FuturisticButton` مبرمج لمعالجة التسجيل والانتقال للواجهة الرئيسية فوراً.
+
+---
+
+### الهيكل والتبويبات الرئيسية الخمسة (Main 5 Tabs)
+
+#### 4. شاشة لوحة المتابعة الرئيسية — `HomeDashboardScreen` (Tab 0)
+- **الملف**: [home_dashboard_screen.dart](file:///d:/Nasa/lib/features/dashboard/screens/home_dashboard_screen.dart)
+- **الوظيفة**: لوحة القياسات الحيوية اللحظية الرئيسية، تضم حالة أجهزة الاستشعار، التنبيهات السريرية، تخطيط القلب الحي، وقراءات الأعضاء.
+- **تقسيمة العناصر الداخلية**:
+  1. **الترويسة الطبية ([DashboardHeader](file:///d:/Nasa/lib/features/dashboard/widgets/dashboard_header.dart))**:
+     - بطاقة تعريف رائد الفضاء ومهمته.
+     - مؤشر حالة الاتصال الطرفي بالذكاء الاصطناعي (Edge Node Online / Cloudflare).
+     - أيقونة سحابة المزامنة مع عداد الطرود المعلقة.
+     - جرس التنبيهات مع شارة تنبيهية نابضة باللون الأحمر للأخطار السريرية غير المقروءة.
+  2. **شريط حالة البث الحي ومصدر التليميتري**:
+     - عنوان "Track Body, Stay Well" مع نقطة نبضية ملونة حسب الحالة.
+     - شارة "LIVE TELEMETRY" المضيئة باللون الأخضر دلالة على استمرار تدفق البيانات.
+  3. **مركز الاختصارات السريعة (Comms Hub)**:
+     - زر الانتقال الفوري لمستشار الذكاء الاصطناعي ("RAG Advisor").
+     - زر فتح خط الاتصال الصوتي مع طبيب هيوستن الأرضي ("Ground Comms").
+  4. **اللوحة المركزية المقسمة (Split Cardiac & Vitals View)**:
+     - **الجانب الأيسر (3 كروت عمودية)**:
+       - بطاقة معدل نبضات القلب الحالية (Heart Rate BPM).
+       - بطاقة ضغط الدم الانقباضي والانبساطي (Blood Pressure mmHg).
+       - بطاقة نبض القلب في وقت الراحة (Resting Heart Rate).
+     - **الجانب الأيمن (القلب الهولوجرافي وتخطيط القلب)**:
+       - قلب ثلاثي الأبعاد مضيء بتوهج ليزري دائري وشارة نسبة صحة القلب `%`.
+       - شاشة كانفاس تفاعلية حية ترسم نبضات الـ ECG في الوقت الفعلي مع حركة موجية دائمة.
+  5. **شبكة القياسات الحيوية الثانوية (2 × 2 Grid)**:
+     - بطاقة نسبة تشبع الأكسجين في الدم ($SpO_2$).
+     - بطاقة درجة حرارة الجسم الأساسية (Body Temp °C).
+     - بطاقة معدل التنفس (Respiration Rate BPM).
+     - بطاقة تقلب معدل ضربات القلب (HRV / RMSSD).
+  6. **شريط ملخص تقييم الذكاء الاصطناعي (AI Summary Banner)**:
+     - كبسولة زجاجية تلخص التقرير السريري الفوري مع نسبة الثقة (95% Conf).
+
+#### 5. شاشة أطلس الجسم ثنائي الأبعاد التفاعلي — `Medical2DBodyScreen` (Tab 1)
+- **الملف**: [medical_2d_body_screen.dart](file:///d:/Nasa/lib/features/body_report/screens/medical_2d_body_screen.dart)
+- **الوظيفة**: تشريح رقمي ثنائي الأبعاد تفاعلي كامل للجسم البشري مزود بقدرة التكبير البؤري على الأعضاء بنسبة (2.4× Matrix Zoom) ومراقبة القياسات السريرية لـ 14 جهازاً حيوياً.
+- **تقسيمة العناصر الداخلية**:
+  1. **الرأس وشريط أدوات المحاكاة الطبية**:
+     - عنوان الفحص التشريحي وزر إعادة ضبط التكبير (Reset Zoom).
+     - أزرار محاكاة الحالات الطبية لاختبار رد الفعل: `NORMAL` (أخضر)، `WARNING` (أصفر)، `CRITICAL` (أحمر).
+  2. **كانفاس الجسم والمسح الإشعاعي (X-Ray Canvas)**:
+     - مجسم تشريحي شفاف بنسبة أبعاد 2:3 مع مسار توجيهي شبكي.
+     - نقاط وعلامات الأعضاء التفاعلية (Hotspots) لكل من: الدماغ، الرئتين، القلب، الكبد، الكليتين، المعدة، الأمعاء، العمود الفقري، إلخ.
+     - تأثير نبض هالة العضو حسب خطورته الطبية.
+  3. **لوحة العضو النشط والتشخيص الفوري (Organ Telemetry HUD Drawer)**:
+     - شريط علوي يوضح اسم العضو ونظامه الحيوي.
+     - القيمة اللحظية والمجال المرجعي الطبي المعتمد من ناسا (NASA STD-3001 Range).
+     - شارة الحالة الطبية (Nominal / Caution / Emergency).
+     - زر لفتح نافذة التفاصيل السريرية المعمقة.
+
+#### 6. شاشة تقرير وتحليل الأعضاء والذكاء الاصطناعي — `HealthAnalysisScreen` (Tab 2)
+- **الملف**: [health_analysis_screen.dart](file:///d:/Nasa/lib/features/analysis/screens/health_analysis_screen.dart)
+- **الوظيفة**: استعراض الفحص الشامل لجميع الأجهزة الفسيولوجية، مع تشغيل محرك دعم القرار الطبي متعدد المخاطر وقوائم الإجراءات العلاجية.
+- **تقسيمة العناصر الداخلية**:
+  1. **رأس التقرير وزر الفحص العميق (Assess Trigger)**:
+     - عنوان "Health Analysis Report" مع زر "ASSESS / AI ANALYZING" المزود بمؤشر معالجة ذكي.
+  2. **كبسولة النتيجة الكلية لصحة الرائد (Hero Status Pill)**:
+     - دائرة قياس نسبة الصحة الإجمالية (مثال: `98%`).
+     - نص تشخيصي تحليلي عام لمستوى الإجهاد والبيئة الإشعاعية.
+  3. **قائمة الإجراءات والبروتوكولات التفاعلية ([MedicalChecklistWidget](file:///d:/Nasa/lib/features/analysis/widgets/medical_checklist_widget.dart))**:
+     - قائمة خطوات عملية علاجية موصى بها من ناسا قابلة للتحديد (Checklist items).
+     - خيار إعادة المحاولة في حال انقطاع الشبكة.
+  4. **شبكة بطاقات الأعضاء الشاملة (Organ Telemetry Grid - 2 Columns)**:
+     - عرض بطاقات مخصصة لكل عضو ([OrganGridCard](file:///d:/Nasa/lib/features/analysis/widgets/organ_grid_card.dart)) تتضمن أيقونته، كفاءته المئوية، الحالة، وأزرار الانتقال لتفاصيله.
+
+#### 7. شاشة التلعيب والتدريب المعرفي — `GamificationScreen` (Tab 3)
+- **الملف**: [gamification_screen.dart](file:///d:/Nasa/lib/features/gamification/gamification_screen.dart)
+- **الوظيفة**: مركز الحفاظ على اللياقة العقلية والمعرفية والنفسية للرواد أثناء العزلة، ويتضمن نظام الرتب المئوي وألعاب رد الفعل والذاكرة وكبسولة الذكريات.
+- **تقسيمة العناصر الداخلية**:
+  1. **بطاقة رتبة رائد الفضاء الكبرى (Hero Rank Card)**:
+     - شعار الرتبة المتوهج عالي الدقة ([RankBadgeWidget](file:///d:/Nasa/lib/features/core/widgets/rank_badge_widget.dart)).
+     - المستوى الحالي (Level) والرتبة (Tier) مثل `Silver Beastmaster`.
+     - شريط تقدم نقاط الخبرة (XP Progress Bar).
+     - زر الانتقال لـ "سُلّم الرتب الـ 100 الكامل" (Rank Ladder).
+  2. **بطاقات ألعاب التدريب المعرفي**:
+     - **بطاقة لعبة Space Reflex**: توضح أفضل رقم قياسي بالمللي ثانية وزر البدء السريع.
+     - **بطاقة لعبة Alien Memory**: توضح أفضل توقيت إنجاز للشبكة وزر التحدي.
+  3. **قسم كبسولة نمط الحياة على الأرض (Life Style on Earth)**:
+     - نبذة عن اليوميات النفسية وزر استعراض الكبسولة أو إضافة ذكرى جديدة فوراً.
+  4. **المهام اليومية الفضائية (Daily Fitness & Suit Missions)**:
+     - قائمة المهام الرياضية والميكانيكية مع أزرار استلام مكافآت نقاط الخبرة (`Claim XP`).
+
+#### 8. شاشة الملف الشخصي لرائد الفضاء — `ProfileScreen` (Tab 4)
+- **الملف**: [profile_screen.dart](file:///d:/Nasa/lib/features/profile/screens/profile_screen.dart)
+- **الوظيفة**: إدارة ملف الرائد، السجل الطبي والحيوي، تراخيص الطيران، والتحكم في إعدادات الاتصال الأرضي والمزامنة السحابية.
+- **تقسيمة العناصر الداخلية**:
+  1. **بطاقة الهوية والبيانات المهماتية (Astronaut Identity Card)**:
+     - صورة الرتبة التفاعلية مع زر فتح سلم الرتب.
+     - الاسم، الرقم التعريفي، المركبة الفضائية، والمهمة.
+     - زر تعديل الملف الشخصي (`Edit Profile`) لفتح نافذة إدخال البيانات المحدثة.
+  2. **بطاقة الخصائص الفسيولوجية والطبية**:
+     - فصيلة الدم، العمر، الطول، الوزن، ومؤشر كتلة الجسم (BMI).
+     - حالة اللياقة البدنية والجاهزية الفضائية (`Flight Ready`).
+  3. **بطاقة الامتثال لمعايير ناسا (NASA STD-3001 Compliance)**:
+     - استعراض معايير الدعم السريري والإشعاعي وجودة الهواء المحققة في النظام.
+  4. **لوحة التحكم في خادم الحافة والمزامنة (Edge Gateway & Sync Control)**:
+     - رابط الخادم (`Endpoint / Cloudflare Tunnel URL`).
+     - حالة الاتصال الحالية ومفتاح التبديل المباشر بين الوضع غير المتصل والوضع المتصل.
+     - عداد الطرود المتزامنة والمتبقية في الطابور المحلي.
+  5. **أزرار الأمان وتسجيل الخروج**:
+     - زر الخروج الآمن وتسليم المناوبة (`Sign Out`).
+
+---
+
+### شاشات التلعيب والتدريب المعرفي (Cognitive Gamification Screens)
+
+#### 9. شاشة سُلّم الرتب الـ 100 — `RankLadderScreen`
+- **الملف**: [rank_ladder_screen.dart](file:///d:/Nasa/lib/features/gamification/rank_ladder/rank_ladder_screen.dart)
+- **الوظيفة**: استعراض المسار المهني لرائد الفضاء المقسم إلى 10 فئات (Tiers) و100 رتبة تدريبية ومهماتية.
+- **تقسيمة العناصر الداخلية**:
+  - **شريط التبويبات الفئوية (Tier Tabs)**: تنقل بين فئات (Bronze, Silver, Gold, Platinum, Diamond, Master, Grandmaster, Ruby, Galaxy, Mythic Legend).
+  - **قائمة الرتب الرأسية**:
+    - بطاقة كل رتبة تحتوي الشعار المخصص لها، اسم الرتبة، نقاط الخبرة المطلوبة، وميزات الفتح (`Perks & Rewards`).
+    - تمييز الرتبة الحالية لرائد الفضاء مع توهج نيون أرجواني/أزرق وعلامة `ACTIVE RANK`.
+
+#### 10. شاشات لعبة سرعة رد الفعل — `SpaceReflexScreen` / `SpaceReflexGame`
+- **الملفات**: [space_reflex_screen.dart](file:///d:/Nasa/lib/space_reflex_screen.dart) و [space_reflex_game.dart](file:///d:/Nasa/lib/features/gamification/space_reflex/space_reflex_game.dart)
+- **الوظيفة**: اختبار عصبي حركي عالي الدقة (يقاس بالمللي ثانية) عبر 100 مرحلة مع أهداف متحركة وقياس رد الفعل لمقاومة التدهور الحركي في الفضاء.
+- **تقسيمة العناصر الداخلية**:
+  - **مؤشر العد التنازلي البدئي ([ReflexCountdown](file:///d:/Nasa/lib/features/gamification/space_reflex/widgets/reflex_countdown.dart))**: 3، 2، 1 بأسلوب سيبراني ليزري.
+  - **كانفاس الأهداف التفاعلية ([ReflexTarget](file:///d:/Nasa/lib/features/gamification/space_reflex/widgets/reflex_target.dart))**: أهداف دائرية تنبثق عشوائياً بألوان نيون مع كاشف ضغط عالي الدقة.
+  - **شريط الحالة العلوية**: عداد الوقت، المرحلة الحالية من 100، ومتوسط سرعة الاستجابة.
+  - **شاشة النتائج النهائية ([space_reflex_results.dart](file:///d:/Nasa/lib/features/gamification/space_reflex/space_reflex_results.dart))**: تقييم النجوم (1 إلى 3 نجوم)، زمن الاستجابة، ونقاط الخبرة المكتسبة.
+
+#### 11. شاشات لعبة الذاكرة الفضائية — `AlienMemoryGameScreen`
+- **الملف**: [alien_memory_game.dart](file:///d:/Nasa/lib/features/gamification/alien_memory/alien_memory_game.dart)
+- **الوظيفة**: مصفوفة ذاكرة فضائية دقيقة بنظام 4 × 4 (16 بطاقة، 8 أزواج متطابقة) مع مؤقت زمني ونظام تحريك ثلاثي الأبعاد للبطاقات.
+- **تقسيمة العناصر الداخلية**:
+  - **HUD الرأس**: عداد الحركات (Moves Counter)، المؤقت الزمني المنقضي، ورقم المرحلة (من 100).
+  - **شبكة البطاقات 4 × 4**: 16 بطاقة تستخدم كرت [MemoryCard](file:///d:/Nasa/lib/features/gamification/alien_memory/widgets/memory_card.dart) المزود بتأثير قلب ثلاثي الأبعاد (Flip Animation) ورسوم بطاقات الفضاء (كواكب، ثقوب سوداء، مركبات).
+  - **شاشة النصر والنتائج ([alien_memory_results.dart](file:///d:/Nasa/lib/features/gamification/alien_memory/alien_memory_results.dart))**: شاشة منبثقة بنجوم الإنجاز ومقدار XP الممنوح مع زر للمرحلة التالية.
+
+---
+
+### شاشات كبسولة الذكريات النفسية (Earth Memories Journal)
+
+#### 12. الشاشة الرئيسية لذكريات الأرض — `LifeStyleOnEarthScreen`
+- **الملف**: [life_style_on_earth_screen.dart](file:///d:/Nasa/lib/features/gamification/life_style_on_earth/life_style_on_earth_screen.dart)
+- **الوظيفة**: كبسولة دعم نفسي تحمي رواد الفضاء من الاكتئاب والعزلة الطويلة بتدوين واسترجاع ذكرياتهم العائلية وأماكنهم المفضلة على كوكب الأرض.
+- **تقسيمة العناصر الداخلية**:
+  - **شريط البحث والتصفية**: حقل بحث فوري للذكريات مع تبويبات التصنيف (All, Family, Places, Food & Coffee, Hobbies, Return Capsule).
+  - **قائمة بطاقات الذكريات ([widgets/memory_card.dart](file:///d:/Nasa/lib/features/gamification/life_style_on_earth/widgets/memory_card.dart))**: عرض عنوان الذكرى، التاريخ، وسم الحالة المزاجية، نجمة المفضلة، ومقتطف من النص.
+  - **الحالة الفارغة ([earth_memory_empty_state.dart](file:///d:/Nasa/lib/features/gamification/life_style_on_earth/widgets/earth_memory_empty_state.dart))**: واجهة مرئية أنيقة تشجع الرائد على كتابة أولى ذكرياته عند بدء الرحلة.
+  - **زر الإضافة العائم (FAB)**: زر إدخال ذكرى جديدة في الكبسولة.
+
+#### 13. شاشة إنشاء وتدوين ذكرى جديدة — `MemoryCreationScreen`
+- **الملف**: [memory_creation_screen.dart](file:///d:/Nasa/lib/features/gamification/life_style_on_earth/memory_creation_screen.dart)
+- **تقسيمة العناصر**: حقل عنوان الذكرى، اختيار التصنيف، اختيار الحالة المزاجية من أيقونات تعبيرية فضائية، منتقي التاريخ، وحقل كتابة القصة التفصيلية، مع زر حفظ يربط مباشرة بالمستودع المحلي.
+
+#### 14. شاشة قراءة تفاصيل الذكرى — `MemoryDetailsScreen`
+- **الملف**: [memory_details_screen.dart](file:///d:/Nasa/lib/features/gamification/life_style_on_earth/memory_details_screen.dart)
+- **تقسيمة العناصر**: عرض نص الذكرى بخط مريح للقراءة، تاريخ التدوين، التصنيف، مع إمكانية إضافة الذكرى للمفضلة أو حذفها.
+
+#### 15. كبسولة العودة للأرض — `ReturnMemoriesScreen`
+- **الملف**: [return_memories_screen.dart](file:///d:/Nasa/lib/features/gamification/life_style_on_earth/return_memories_screen.dart)
+- **تقسيمة العناصر**: أرشيف مخصص للذكريات المجدولة للفتح والمراجعة أثناء مرحلة العودة والدخول في الغلاف الجوي للأرض.
+
+---
+
+### شاشات المحادثة والاتصال الفضائي (Comms & AI Advisor)
+
+#### 16. شاشة مستشار الذكاء الاصطناعي الطبي الفضائي — `RagChatbotScreen`
+- **الملف**: [rag_chatbot_screen.dart](file:///d:/Nasa/lib/features/chat/screens/rag_chatbot_screen.dart)
+- **الوظيفة**: استشارة سريرية فورية مدعومة بنظام RAG الطبي وقاعدة المعرفة الفضائية لمهام أرتميس، مع إمكانية العمل الكامل أوفلاين كبديل تلقائي عند انقطاع الاتصال.
+- **تقسيمة العناصر الداخلية**:
+  - **الترويسة والوسوم**: بيان حالة المحرك (`ONLINE RAG` أو `OFFLINE NASA FALLBACK`).
+  - **فقاعات الاقتراحات السريعة (Quick Prompts Chips)**:
+    - *"Analyze my current biometric vitals"*
+    - *"Hypoxia countermeasure protocol"*
+    - *"Fluid shift and cephalad pressure in orbit"*
+    - *"Circadian sleep optimization guideline"*
+  - **منطقة الرسائل التفاعلية**:
+    - رسائل الرائد ورسائل الذكاء الاصطناعي مع إظهار المراجع العلمية (`Citations: NASA-STD-3001, Artemis Medical Manual`).
+  - **شريط الإدخال المتعدد**:
+    - حقل نصي لكتابة الأعراض أو السؤال السريري.
+    - **زر تحويل الصوت إلى نص (Speech-to-Text)**: للتحدث الصوتي المباشر دون الحاجة للكتابة أثناء ارتداء القفازات أو أثناء انعدام الجاذبية.
+    - زر الإرسال السيبراني.
+
+#### 17. شاشة الاتصالات المباشرة مع طبيب هيوستن — `GroundCommsChatScreen`
+- **الملف**: [ground_comms_chat_screen.dart](file:///d:/Nasa/lib/features/chat/screens/ground_comms_chat_screen.dart)
+- **الوظيفة**: قناة تواصل مشفرة مع جراح الرحلة (Flight Surgeon) في مركز مراقبة مهمة هيوستن، مع دعم تسجيلات الصوت وتخزين الرسائل في طابور محلي عند انقطاع الإرسال وإعادة مزامنتها تلقائياً.
+- **تقسيمة العناصر الداخلية**:
+  - مؤشر زمن التأخير الفضائي (Latency Indicator).
+  - قائمة الرسائل المتبادلة مع علامة الإرسال الفضائي التلقائي.
+  - زر الإملاء الصوتي (STT) وزر الإرسال الفوري.
+
+---
+
+### شاشة المهام والترقية (Missions & Level Up)
+
+#### 18. شاشة المهام اليومية لرواد الفضاء — `MissionsScreen`
+- **الملف**: [missions_screen.dart](file:///d:/Nasa/lib/features/missions/screens/missions_screen.dart)
+- **تقسيمة العناصر**:
+  - بطاقة أهداف الحفاظ على كثافة العظام والتمارين الهوائية (Cardio & Resistance).
+  - بطاقة فحص بدلة الفضاء وضغط الأكسجين (EVA Suit Diagnostics).
+  - أزرار الحصول على الـ XP مع شريط التقدم اليومي للمهمة.
+
+#### 19. نافذة الاحتفال بالترقية — `LevelUpDialog`
+- **الملف**: [level_up_dialog.dart](file:///d:/Nasa/lib/features/missions/widgets/level_up_dialog.dart)
+- **تقسيمة العناصر**: نافذة منبثقة تفاعلية عند بلوغ مستوى جديد، تعرض الرتبة الجديدة، الشعار المتوهج، مؤثرات ضوئية، ملخص الميزات المفتوحة، وزر العودة للخدمة الفضائية.
+
+---
+
+## 3. مكتبة الكمبوننتس الأساسية المشتركة (Core Reusable Components)
+
+| اسم الكمبوننت | مسار الملف | الوظيفة ودور التصميم |
+|:---|:---|:---|
+| **`CornerBracketCard`** | [corner_bracket_card.dart](file:///d:/Nasa/lib/core/widgets/corner_bracket_card.dart) | بطاقة HUD رئيسية ذات زوايا سيبرانية بأطوال وسماكات قابلة للتخصيص، مع خلفيات زجاجية وتدرجات ضوئية تتجاوب مع حالة العضو أو العنصر. |
+| **`CustomBottomNav`** | [custom_bottom_nav.dart](file:///d:/Nasa/lib/core/widgets/custom_bottom_nav.dart) | شريط تنقل سفلي عائم ذو حواف دائرية (BorderRadius 28) محاط بتوهج سيبراني ويحتوي على الأزرار الخمسة مع مؤشر كبسولي للتبويب النشط. |
+| **`EcgWaveformWidget`** | [ecg_waveform.dart](file:///d:/Nasa/lib/core/widgets/ecg_waveform.dart) | محرك رسم كانفاس مخصص (`CustomPainter`) يولد نبضات تخطيط القلب الكهربائي ECG بشكل حيوي ومستمر مع تحكم في السرعة واللون. |
+| **`FuturisticButton`** | [futuristic_button.dart](file:///d:/Nasa/lib/core/widgets/futuristic_button.dart) | زر نيون تفاعلي عالي التقنية يدعم حالات التحميل (`isLoading`)، التدرجات اللونية، وتأثيرات الضغط النيونية. |
+| **`RankBadgeWidget`** | [rank_badge_widget.dart](file:///d:/Nasa/lib/core/widgets/rank_badge_widget.dart) | ويدجت إظهار أوسمة الرتب الفضائية الـ 100 عالي الدقة مع دوائر توهج شعاعي ومؤشر رقم المستوى. |
+| **`StatusBadge`** | [status_badge.dart](file:///d:/Nasa/lib/core/widgets/status_badge.dart) | شارة تصنيف سريري (Normal, Warning, Critical) مع نقطة نابضة ذات ظل ليزري معبر عن درجة الخطورة. |
+
+---
+
+## 4. الكمبوننتس الفرعية والـ Modals والقوائم السفلية (Feature Widgets & Modals)
+
+### مكونات لوحة التحكم (Dashboard Widgets)
+- **`DashboardHeader`** ([dashboard_header.dart](file:///d:/Nasa/lib/features/dashboard/widgets/dashboard_header.dart)):
+  - يعرض صورة رتبة الرائد، اسمه، كود المهمة، حالة الخادم الحافة، زر الإشعارات مع عداد الحالات الحرجة غير المقروءة، وأيقونة حالة المزامنة السحابية.
+- **`BiometricCard`** ([biometric_card.dart](file:///d:/Nasa/lib/features/dashboard/widgets/biometric_card.dart)):
+  - بطاقة رقمية تعرض اسم القياس الحيوي (مثل $SpO_2$ أو الحرارة)، القيمة الكبيرة بوحدتها، مؤشر النطاق، وسهم الصعود/الهبوط، مع إمكانية النقر للانتقال للعضو المرتبط.
+- **`OrganDetailsSheet`** ([organ_details_sheet.dart](file:///d:/Nasa/lib/features/dashboard/widgets/organ_details_sheet.dart)):
+  - قائمة سفلية شاملة تنبثق عند الضغط على أي عضو، توضح الرسم التفصيلي، وظيفة العضو، القراءات الفسيولوجية الحالية مقارنة بحدود ناسا، وقائمة تحكم تجريبية لتغيير الحالة فوراً بين (طبيعي / تحذير / حرج).
+- **`NotificationCenterModal`** ([notification_center_modal.dart](file:///d:/Nasa/lib/features/dashboard/widgets/notification_center_modal.dart)):
+  - مركز إدارة تنبيهات الفضاء السريرية، يحتوي على فلاتر فرز حسب الخطورة (ALL, CRITICAL, WARNING, NORMAL) مع إمكانية قراءة إرشادات التدخل العاجل وإرسال إشعار للمركز الأرضي.
+- **`ManualInputModal`** ([manual_input_modal.dart](file:///d:/Nasa/lib/features/dashboard/widgets/manual_input_modal.dart)):
+  - نافذة منبثقة تتيح للرائد أو الطبيب إدخال القياسات الحيوية يدوياً في حال عطل أحد المستشعرات الميدانية.
+
+### مكونات التحليل والأعضاء (Analysis Widgets)
+- **`OrganGridCard`** ([organ_grid_card.dart](file:///d:/Nasa/lib/features/analysis/widgets/organ_grid_card.dart)):
+  - ويدجت الكرت في شبكة فحص الأعضاء؛ يجمع بين اسم العضو، أيقونة النظام البيولوجي، كفاءة الصحة المئوية، ولون الزوايا المتغير ديناميكياً.
+- **`MedicalChecklistWidget`** ([medical_checklist_widget.dart](file:///d:/Nasa/lib/features/analysis/widgets/medical_checklist_widget.dart)):
+  - قائمة ذكية تترجم توصيات الذكاء الاصطناعي إلى مربعات اختيار تفاعلية يمكن لرائد الفضاء إنجازها خطوة بخطوة أثناء المهام السريرية.
+
+### مكونات الألعاب والذاكرة (Gamification Widgets)
+- **`MemoryCard`** ([widgets/memory_card.dart](file:///d:/Nasa/lib/features/gamification/alien_memory/widgets/memory_card.dart)):
+  - بطاقة لعبة الذاكرة المعرفية المزودة بتحريك انسيابي للوجهين (الخلفية الفضائية الموحدة / صورة الكائن الفضائي أو الكوكب عند القلب).
+- **`ReflexTarget`** ([reflex_target.dart](file:///d:/Nasa/lib/features/gamification/space_reflex/widgets/reflex_target.dart)):
+  - الهدف الدائري النيوني المتنقل سريعاً على الشاشة مع تأثير توهج ليزري عند النقر الناجح.
+- **`EarthMemoryCard`** ([widgets/memory_card.dart](file:///d:/Nasa/lib/features/gamification/life_style_on_earth/widgets/memory_card.dart)):
+  - بطاقة الذكرى المزودة بوسم الحالة النفسية، التاريخ، زر النجمة المفضلة، ونبذة نصية أنيقة.
+
+---
+
+## 5. المساعد الفضائي العائم (AuraBot Floating Companion)
+
+تم دمج رفيق فضاء تفاعلي عائم ودائم الظهور فوق كافة شاشات التطبيق لتقديم الدعم المعنوي والتحذيرات السريرية الفورية:
+
+- **الويدجت الرئيسي**: [floating_astro_companion.dart](file:///d:/Nasa/lib/features/companion/widgets/floating_astro_companion.dart)
+  - يقبل السحب الحر (Draggable) لأي زاوية من زوايا الشاشة حتى لا يعيق التفاعل مع محتوى الواجهات.
+  - يرتبط بنظام نصائح دورية ذكي (تدوير كل 22 ثانية مع إخفاء تلقائي بعد 7 ثوانٍ).
+- **مكونات رسم الروبوت**:
+  - `AstroBotWidget` ([astro_bot_widget.dart](file:///d:/Nasa/lib/features/companion/widgets/astro_bot_widget.dart)): الحاوية الفيزيائية مع الحركة العائمة (Hovering Animation).
+  - `AstroBotPainter` ([astro_bot_painter.dart](file:///d:/Nasa/lib/features/companion/widgets/astro_bot_painter.dart)): رسم مجسم الروبوت بالكانفاس: الخوذة الزجاجية، العيون المضيئة، الهوائي الفضائي، ودرع الفضاء.
+- **فقاعة التحدث**:
+  - `AstroSpeechBubble` ([astro_speech_bubble.dart](file:///d:/Nasa/lib/features/companion/widgets/astro_speech_bubble.dart)): فقاعة تلميحات سيبرانية تحتوي على توجيهات الشرب، التمارين، وتنبيهات الأكسجين.
+- **نافذة المحادثة السريعة**:
+  - `AstroBotChatSheet` ([astro_bot_chat_sheet.dart](file:///d:/Nasa/lib/features/companion/widgets/astro_bot_chat_sheet.dart)): شيت محادثة منبثق عند الضغط على الروبوت للتحدث السريع معه.
+
+---
+
+## 6. خريطة تدفق الشاشات وإدارة الحالة (Flow & State Management Map)
+
+```mermaid
+graph TD
+    App[AuraMedApp] --> Splash[AuraMedSplashScreen]
+    Splash --> Gate{RootGateScreen: هل مسجل دخول؟}
+    
+    Gate -- لا --> Login[LoginScreen]
+    Login -- تسجيل جديد --> Register[RegisterScreen]
+    Register --> Login
+    
+    Gate -- نعم --> Shell[MainNavigationShell]
+    
+    subgraph NavigationTabs [IndexedStack Tabs]
+        Shell --> Tab0[HomeDashboardScreen]
+        Shell --> Tab1[Medical2DBodyScreen]
+        Shell --> Tab2[HealthAnalysisScreen]
+        Shell --> Tab3[GamificationScreen]
+        Shell --> Tab4[ProfileScreen]
+    end
+    
+    subgraph SubFlows [الشاشات الفرعية والخدمات]
+        Tab0 --> Rag[RagChatbotScreen]
+        Tab0 --> Ground[GroundCommsChatScreen]
+        Tab0 --> Notif[NotificationCenterModal]
+        Tab0 --> OrganSheet[OrganDetailsSheet]
+        
+        Tab3 --> RankLadder[RankLadderScreen]
+        Tab3 --> Reflex[SpaceReflexScreen]
+        Tab3 --> Memory[AlienMemoryGameScreen]
+        Tab3 --> Capsule[LifeStyleOnEarthScreen]
+        Capsule --> NewMemory[MemoryCreationScreen]
+        Capsule --> MemoryDetail[MemoryDetailsScreen]
+        Capsule --> ReturnCapsule[ReturnMemoriesScreen]
+        
+        Tab3 --> Missions[MissionsScreen]
+        Missions --> LevelUp[LevelUpDialog]
+    end
+```
+
+### مقدمو البيانات وإدارة الحالة (ChangeNotifier Providers):
+
+1. **`AuthProvider`** ([auth_provider.dart](file:///d:/Nasa/lib/state/auth_provider.dart)): إدارة هوية رائد الفضاء، حالة المصادقة، وحفظ وتعديل بيانات الملف الشخصي محلياً.
+2. **`HealthProvider`** ([health_provider.dart](file:///d:/Nasa/lib/state/health_provider.dart)): إدارة التليميتري والنبض الحي، حالة الـ 14 عضواً، استهلاك طرود بيانات الـ 10 قراءات JSON، وتوليد التنبيهات السريرية.
+3. **`AuraMedProvider`** ([auramed_provider.dart](file:///d:/Nasa/lib/state/auramed_provider.dart)): التواصل مع نموذج الذكاء الاصطناعي الخارجي (FastAPI / Cloudflare Tunnel) أو التبديل للمحرك السريري الداخلي (NASA STD-3001 Clinical Decision Engine) عند انقطاع الاتصال.
+4. **`MissionsProvider`** ([missions_provider.dart](file:///d:/Nasa/lib/state/missions_provider.dart)): إدارة المستويات الـ 100، نقاط الخبرة (XP)، المهام اليومية، وإطلاق احتفالية الترقية `LevelUpDialog`.
+5. **`TelemetrySyncService`** ([telemetry_sync_service.dart](file:///d:/Nasa/lib/services/telemetry_sync_service.dart)): طابور مزامنة طرود التليميتري غير المتصلة (Offline Queue) وإرسالها المجمّع فور استعادة الاتصال بالأرض.
+
+---
+*تم إعداد وتوثيق هذا الدليل ليكون مرجعاً تقنياً وتصميمياً شاملاً لمشروع AuraMed.*
