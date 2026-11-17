@@ -19,7 +19,6 @@ lib/
 lib64/
 parts/
 sdist/
-var/
 wheels/
 share/python-wheels/
 *.egg-info/
@@ -29,6 +28,7 @@ MANIFEST
 
 # Virtual environments
 .venv/
+.uv_cache/
 env/
 venv/
 ENV/
@@ -43,6 +43,25 @@ venv.bak/
 *.swo
 *~
 .DS_Store
+
+# AI Agent files & specifications
+AGENTS.md
+.specify/
+specs/
+.agent/
+.agents/
+**/.agent/
+**/.agents/
+
+# Local execution scripts & runtime test artifacts
+start.bat
+status.bat
+stop.bat
+bin/
+test_health.py
+test_readings_10.json
+*.bak
+*.zip
 
 # Databases, Vectors & Persistent storage
 chroma_data/
@@ -78,4 +97,3 @@ logs/
 # Binaries & Tunnel tools
 infrastructure/bin/
 *.exe
-
