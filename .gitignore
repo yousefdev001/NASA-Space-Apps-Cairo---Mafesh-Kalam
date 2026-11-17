@@ -1,9 +1,26 @@
-__pycache__/
-*.py[cod]
-*$py.class
+# Dependencies
+node_modules/
+vendor/
+
+# Environment files
 .env
-.venv
-env/
-venv/
+.env.backup
+.env.production
+.env.*.local
+
+# Databases
+*.sqlite
+*.sqlite-journal
+
+# Logs
+*.log
+
+# Build outputs
+frontend/dist/
+frontend/dist-ssr/
+
+# OS and IDE files
 .DS_Store
 Thumbs.db
+.idea/
+.vscode/
