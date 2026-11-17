@@ -62,6 +62,21 @@ class DatabaseSeeder extends Seeder
                 'email' => 'cadet_student@auramed.nasa.gov',
                 'role' => 'cadet_student',
             ],
+            [
+                'name' => 'Eng. Marcus Vance',
+                'email' => 'biomedical_engineer@auramed.nasa.gov',
+                'role' => 'biomedical_engineer',
+            ],
+            [
+                'name' => 'Prof. Maya Lin',
+                'email' => 'educator_content_creator@auramed.nasa.gov',
+                'role' => 'educator_content_creator',
+            ],
+            [
+                'name' => 'Inspector Evelyn Reed',
+                'email' => 'auditor_compliance@auramed.nasa.gov',
+                'role' => 'auditor_compliance',
+            ],
         ];
 
         foreach ($users as $userData) {
@@ -81,5 +96,8 @@ class DatabaseSeeder extends Seeder
 
         // 5. Seed Complete AuraMed Domain (AI Insights, Alerts, Reports, Academy, Articles, Audit)
         $this->call(AuraMedFullSeeder::class);
+
+        // 6. Enrich Space Academy Curricula, Mini-Games, Badges & Leaderboard
+        $this->call(AcademyCurriculumSeeder::class);
     }
 }

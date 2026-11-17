@@ -17,11 +17,14 @@ use Illuminate\Support\Facades\DB;
 class AcademyController extends Controller
 {
     /**
-     * Get published academy courses.
+     * Get published academy courses with lesson counts.
      */
     public function courses(Request $request)
     {
         $query = AcademyCourse::withCount('lessons')
+            ->with(['lessons' => function ($q) {
+                $q->where('is_published', true)->orderBy('sort_order', 'asc');
+            }])
             ->where('is_published', true)
             ->orderBy('sort_order', 'asc');
 
@@ -43,19 +46,29 @@ class AcademyController extends Controller
     }
 
     /**
-     * Get single course details with lessons outline.
+     * Get single course details with all lessons and attached quizzes.
      */
     public function courseDetail($id)
     {
         $course = AcademyCourse::with(['lessons' => function ($q) {
-            $q->where('is_published', true)->orderBy('sort_order', 'asc');
+            $q->where('is_published', true)->orderBy('sort_order', 'asc')->with('quizzes');
         }])->findOrFail($id);
 
         return ApiResponse::success($course, 'Course details retrieved.');
     }
 
     /**
-     * Get lesson details with attached interactive quizzes.
+     * Get single lesson details directly with quizzes.
+     */
+    public function singleLessonDetail($lessonId)
+    {
+        $lesson = AcademyLesson::with(['quizzes', 'course'])->findOrFail($lessonId);
+
+        return ApiResponse::success($lesson, 'Lesson details retrieved.');
+    }
+
+    /**
+     * Get lesson details with attached interactive quizzes scoped to course.
      */
     public function lessonDetail($courseId, $lessonId)
     {
@@ -72,24 +85,38 @@ class AcademyController extends Controller
     public function submitQuiz(Request $request, $lessonId)
     {
         $lesson = AcademyLesson::with('quizzes')->findOrFail($lessonId);
-        $user = auth()->user() ?? User::first();
+        $user = auth('sanctum')->user()
+            ?? auth()->user()
+            ?? User::where('email', 'cadet_student@auramed.nasa.gov')->first()
+            ?? User::first();
 
         $answers = $request->input('answers', []); // map of quiz_id => selected_option_index
         $totalQuizzes = $lesson->quizzes->count();
         $correctCount = 0;
+        $quizResults = [];
 
         foreach ($lesson->quizzes as $quiz) {
-            if (isset($answers[$quiz->id]) && (int) $answers[$quiz->id] === $quiz->correct_option_index) {
+            $userChoice = isset($answers[$quiz->id]) ? (int) $answers[$quiz->id] : null;
+            $isCorrect = $userChoice !== null && $userChoice === (int) $quiz->correct_option_index;
+            if ($isCorrect) {
                 $correctCount++;
             }
+            $quizResults[] = [
+                'quiz_id' => $quiz->id,
+                'user_choice' => $userChoice,
+                'correct_option_index' => $quiz->correct_option_index,
+                'is_correct' => $isCorrect,
+                'explanation' => $quiz->explanation,
+            ];
         }
 
         $scorePercent = $totalQuizzes > 0 ? round(($correctCount / $totalQuizzes) * 100, 2) : 100;
-        $passed = $scorePercent >= 70;
+        $passed = $scorePercent >= 60;
         $xpAwarded = 0;
+        $newBadges = [];
 
         if ($passed) {
-            $xpAwarded = $lesson->xp_reward ?: 25;
+            $xpAwarded = $lesson->xp_reward ?: 40;
 
             UserXpRecord::create([
                 'user_id' => $user->id,
@@ -110,8 +137,11 @@ class AcademyController extends Controller
             );
 
             // Check if user unlocked any new badges
-            $this->evaluateBadges($user->id);
+            $newBadges = $this->evaluateBadges($user->id);
         }
+
+        $totalXp = (int) UserXpRecord::where('user_id', $user->id)->sum('xp_earned');
+        $rank = $this->calculateRank($totalXp);
 
         return ApiResponse::success([
             'passed' => $passed,
@@ -119,7 +149,54 @@ class AcademyController extends Controller
             'correct_count' => $correctCount,
             'total_questions' => $totalQuizzes,
             'xp_awarded' => $xpAwarded,
-        ], $passed ? 'Congratulations! Quiz passed and XP awarded.' : 'Quiz completed. Keep training to improve your score.');
+            'total_xp' => $totalXp,
+            'rank' => $rank,
+            'new_badges' => $newBadges,
+            'quiz_results' => $quizResults,
+        ], $passed ? 'Congratulations! Quiz passed and '.$xpAwarded.' XP awarded.' : 'Quiz completed. Keep training to achieve 60% or higher.');
+    }
+
+    /**
+     * Submit score from interactive mini-game and award XP.
+     */
+    public function submitGameScore(Request $request, $id)
+    {
+        $game = is_numeric($id)
+            ? AcademyMiniGame::findOrFail($id)
+            : AcademyMiniGame::where('slug', $id)->firstOrFail();
+
+        $user = auth('sanctum')->user()
+            ?? auth()->user()
+            ?? User::where('email', 'cadet_student@auramed.nasa.gov')->first()
+            ?? User::first();
+
+        $score = (int) $request->input('score', 100);
+        $maxScore = max((int) $request->input('max_score', 100), 1);
+        $ratio = min(max($score / $maxScore, 0), 1);
+        $xpAwarded = max((int) round($ratio * ($game->xp_reward ?: 50)), 15);
+
+        UserXpRecord::create([
+            'user_id' => $user->id,
+            'source_type' => 'game',
+            'source_id' => $game->id,
+            'xp_earned' => $xpAwarded,
+            'earned_at' => now(),
+            'created_at' => now(),
+        ]);
+
+        $newBadges = $this->evaluateBadges($user->id);
+        $totalXp = (int) UserXpRecord::where('user_id', $user->id)->sum('xp_earned');
+        $rank = $this->calculateRank($totalXp);
+
+        return ApiResponse::success([
+            'game_id' => $game->id,
+            'game_title' => $game->title,
+            'score' => $score,
+            'xp_awarded' => $xpAwarded,
+            'total_xp' => $totalXp,
+            'rank' => $rank,
+            'new_badges' => $newBadges,
+        ], 'Mission simulator complete! '.$xpAwarded.' XP awarded.');
     }
 
     /**
@@ -143,26 +220,17 @@ class AcademyController extends Controller
     }
 
     /**
-     * Get authenticated user's XP, current rank, and unlocked badges.
+     * Get user's XP, current rank, next threshold, and unlocked badges.
      */
     public function myProgress()
     {
-        $user = auth()->user() ?? User::first();
+        $user = auth('sanctum')->user()
+            ?? auth()->user()
+            ?? User::where('email', 'cadet_student@auramed.nasa.gov')->first()
+            ?? User::first();
 
-        $totalXp = UserXpRecord::where('user_id', $user->id)->sum('xp_earned');
-
-        $rank = 'Cadet';
-        if ($totalXp >= 2000) {
-            $rank = 'Mission Director';
-        } elseif ($totalXp >= 1000) {
-            $rank = 'Flight Surgeon';
-        } elseif ($totalXp >= 600) {
-            $rank = 'Commander';
-        } elseif ($totalXp >= 300) {
-            $rank = 'Pilot';
-        } elseif ($totalXp >= 100) {
-            $rank = 'Specialist';
-        }
+        $totalXp = (int) UserXpRecord::where('user_id', $user->id)->sum('xp_earned');
+        $rank = $this->calculateRank($totalXp);
 
         $earnedBadges = UserBadge::with('badge')
             ->where('user_id', $user->id)
@@ -172,16 +240,39 @@ class AcademyController extends Controller
             ->where('status', 'completed')
             ->count();
 
+        $ranks = [
+            ['name' => 'Cadet', 'min_xp' => 0, 'max_xp' => 100],
+            ['name' => 'Specialist', 'min_xp' => 100, 'max_xp' => 300],
+            ['name' => 'Pilot', 'min_xp' => 300, 'max_xp' => 600],
+            ['name' => 'Commander', 'min_xp' => 600, 'max_xp' => 1000],
+            ['name' => 'Flight Surgeon', 'min_xp' => 1000, 'max_xp' => 2000],
+            ['name' => 'Mission Director', 'min_xp' => 2000, 'max_xp' => 5000],
+        ];
+
+        $nextRank = $ranks[1];
+        foreach ($ranks as $i => $tier) {
+            if ($totalXp >= $tier['min_xp']) {
+                $nextRank = $ranks[$i + 1] ?? null;
+            }
+        }
+
         return ApiResponse::success([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
             'total_xp' => $totalXp,
             'rank' => $rank,
+            'next_rank' => $nextRank ? $nextRank['name'] : 'Apex Astronaut',
+            'next_rank_xp' => $nextRank ? $nextRank['min_xp'] : 5000,
             'completed_lessons' => $completedLessons,
             'badges' => $earnedBadges,
         ], 'User academy progress retrieved.');
     }
 
     /**
-     * Public leaderboard ranking cadets and students.
+     * Public leaderboard ranking cadets and flight surgeons.
      */
     public function leaderboard()
     {
@@ -193,19 +284,55 @@ class AcademyController extends Controller
             ->limit(10)
             ->get();
 
+        $leaders = $leaders->map(function ($cadet, $index) {
+            $cadet->rank = $this->calculateRank((int) $cadet->total_xp);
+            $cadet->leaderboard_position = $index + 1;
+            $cadet->badge_count = UserBadge::where('user_id', $cadet->id)->count();
+
+            return $cadet;
+        });
+
         return ApiResponse::success($leaders, 'Academy leaderboard retrieved.');
     }
 
-    private function evaluateBadges(int $userId): void
+    private function calculateRank(int $totalXp): string
     {
-        $totalXp = UserXpRecord::where('user_id', $userId)->sum('xp_earned');
+        if ($totalXp >= 2000) {
+            return 'Mission Director';
+        } elseif ($totalXp >= 1000) {
+            return 'Flight Surgeon';
+        } elseif ($totalXp >= 600) {
+            return 'Commander';
+        } elseif ($totalXp >= 300) {
+            return 'Pilot';
+        } elseif ($totalXp >= 100) {
+            return 'Specialist';
+        }
+
+        return 'Cadet';
+    }
+
+    private function evaluateBadges(int $userId): array
+    {
+        $totalXp = (int) UserXpRecord::where('user_id', $userId)->sum('xp_earned');
         $eligibleBadges = Badge::where('xp_required', '<=', $totalXp)->get();
+        $newBadges = [];
 
         foreach ($eligibleBadges as $badge) {
-            UserBadge::firstOrCreate(
-                ['user_id' => $userId, 'badge_id' => $badge->id],
-                ['earned_at' => now()]
-            );
+            $alreadyHas = UserBadge::where('user_id', $userId)
+                ->where('badge_id', $badge->id)
+                ->exists();
+
+            if (! $alreadyHas) {
+                UserBadge::create([
+                    'user_id' => $userId,
+                    'badge_id' => $badge->id,
+                    'earned_at' => now(),
+                ]);
+                $newBadges[] = $badge;
+            }
         }
+
+        return $newBadges;
     }
 }

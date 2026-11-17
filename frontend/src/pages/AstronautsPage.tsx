@@ -1,76 +1,124 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Users, Search, ShieldCheck } from 'lucide-react';
+import apiClient from '../api/client';
+
+interface AstronautItem {
+  id: number;
+  uuid: string;
+  callsign: string;
+  name: string;
+  nationality: string;
+  rank: string;
+  specialization: string;
+  bloodType: string;
+  totalEvaHours: number;
+  totalSpaceDays: number;
+  evaCertified: boolean;
+  status: 'nominal' | 'warning' | 'critical';
+  mission: string;
+}
+
+const DEFAULT_ASTRONAUTS: AstronautItem[] = [
+  {
+    id: 1,
+    uuid: 'ast-001',
+    callsign: 'CDR-01',
+    name: 'Elena Vance',
+    nationality: 'United States (NASA)',
+    rank: 'Commander / Flight Surgeon',
+    specialization: 'Cardiothoracic Surgery & Bio-Astronautics',
+    bloodType: 'O+',
+    totalEvaHours: 28.5,
+    totalSpaceDays: 194,
+    evaCertified: true,
+    status: 'nominal',
+    mission: 'Artemis IV Lunar Gateway',
+  },
+  {
+    id: 2,
+    uuid: 'ast-002',
+    callsign: 'PLT-02',
+    name: 'Marcus Chen',
+    nationality: 'Canada (CSA)',
+    rank: 'Orbital Pilot / Systems Commander',
+    specialization: 'Propulsion, Robotics & Orbital Navigation',
+    bloodType: 'A+',
+    totalEvaHours: 14.0,
+    totalSpaceDays: 112,
+    evaCertified: true,
+    status: 'nominal',
+    mission: 'Artemis IV Lunar Gateway',
+  },
+  {
+    id: 3,
+    uuid: 'ast-003',
+    callsign: 'SPC-03',
+    name: 'Arya Patel',
+    nationality: 'ESA / Germany',
+    rank: 'Biomedical Payload Specialist',
+    specialization: 'Molecular Biology, Microgravity Genomics',
+    bloodType: 'B+',
+    totalEvaHours: 6.2,
+    totalSpaceDays: 85,
+    evaCertified: true,
+    status: 'warning',
+    mission: 'Artemis IV Lunar Gateway',
+  },
+  {
+    id: 4,
+    uuid: 'ast-004',
+    callsign: 'ENG-04',
+    name: 'Alexei Ivanov',
+    nationality: 'ESA / France',
+    rank: 'Lead Life Support Systems Engineer',
+    specialization: 'ECLSS Closed-Loop Systems & Thermodynamics',
+    bloodType: 'AB-',
+    totalEvaHours: 32.0,
+    totalSpaceDays: 240,
+    evaCertified: true,
+    status: 'nominal',
+    mission: 'ISS Expedition 74',
+  },
+];
 
 export const AstronautsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [crewList, setCrewList] = useState<AstronautItem[]>(DEFAULT_ASTRONAUTS);
 
-  const astronauts = [
-    {
-      id: 1,
-      uuid: 'ast-001',
-      callsign: 'CDR-01',
-      name: 'Elena Vance',
-      nationality: 'United States (NASA)',
-      rank: 'Commander / Flight Surgeon',
-      specialization: 'Cardiothoracic Surgery & Bio-Astronautics',
-      bloodType: 'O+',
-      totalEvaHours: 28.5,
-      totalSpaceDays: 194,
-      evaCertified: true,
-      status: 'nominal' as const,
-      mission: 'Artemis IV',
-    },
-    {
-      id: 2,
-      uuid: 'ast-002',
-      callsign: 'PLT-02',
-      name: 'Marcus Chen',
-      nationality: 'Canada (CSA)',
-      rank: 'Orbital Pilot / Systems Commander',
-      specialization: 'Propulsion, Robotics & Orbital Navigation',
-      bloodType: 'A+',
-      totalEvaHours: 14.0,
-      totalSpaceDays: 112,
-      evaCertified: true,
-      status: 'nominal' as const,
-      mission: 'Artemis IV',
-    },
-    {
-      id: 3,
-      uuid: 'ast-003',
-      callsign: 'SPC-03',
-      name: 'Arya Patel',
-      nationality: 'ESA / Germany',
-      rank: 'Biomedical Payload Specialist',
-      specialization: 'Molecular Biology, Microgravity Genomics',
-      bloodType: 'B+',
-      totalEvaHours: 6.2,
-      totalSpaceDays: 85,
-      evaCertified: true,
-      status: 'warning' as const,
-      mission: 'Artemis IV',
-    },
-    {
-      id: 4,
-      uuid: 'ast-004',
-      callsign: 'ENG-04',
-      name: 'Alexei Ivanov',
-      nationality: 'ESA / France',
-      rank: 'Lead Life Support Systems Engineer',
-      specialization: 'ECLSS Closed-Loop Systems & Thermodynamics',
-      bloodType: 'AB-',
-      totalEvaHours: 32.0,
-      totalSpaceDays: 240,
-      evaCertified: true,
-      status: 'nominal' as const,
-      mission: 'Gateway Station Ops',
-    },
-  ];
+  useEffect(() => {
+    const loadAstronauts = async () => {
+      try {
+        const res = await apiClient.get('/astronauts');
+        if (res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
+          const mapped: AstronautItem[] = res.data.data.map((item: any) => ({
+            id: item.id,
+            uuid: item.uuid || `ast-${item.id}`,
+            callsign: item.callsign,
+            name: item.full_name,
+            nationality: item.nationality || 'International Partner',
+            rank: item.rank || 'Mission Specialist',
+            specialization: item.specialization || 'Bio-Astronautics',
+            bloodType: item.blood_type || 'O+',
+            totalEvaHours: Number(item.total_eva_hours) || 0,
+            totalSpaceDays: Number(item.total_space_days) || 0,
+            evaCertified: Boolean(item.eva_certified),
+            status: (item.status as any) || 'nominal',
+            mission: item.mission_name || 'Artemis Program',
+          }));
+          setCrewList(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to fetch astronauts from API, using cached registry', err);
+      }
+    };
+    // oxlint-disable-next-line react/set-state-in-effect
+    void loadAstronauts();
+  }, []);
 
-  const filtered = astronauts.filter(
+  const filtered = crewList.filter(
     (a) =>
       a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       a.callsign.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -123,6 +171,10 @@ export const AstronautsPage: React.FC = () => {
               <div className="text-slate-300">
                 <span className="text-slate-500">SPECIALIZATION: </span>
                 <span>{astronaut.specialization}</span>
+              </div>
+              <div className="text-slate-300">
+                <span className="text-slate-500">ASSIGNED MISSION: </span>
+                <span className="text-cyan-300">{astronaut.mission}</span>
               </div>
               <div className="grid grid-cols-3 gap-2 pt-2 text-[11px]">
                 <div className="p-2 rounded bg-[#050B14] border border-[#1E3A5F]/60">

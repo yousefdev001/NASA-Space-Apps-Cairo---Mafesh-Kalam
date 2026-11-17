@@ -34,7 +34,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
     hasRole: (role: UserRole | UserRole[]) => {
       const { user } = get();
-      if (!user) return false;
+      if (!user || !user.roles) return false;
       if (Array.isArray(role)) {
         return role.some((r) => user.roles.includes(r));
       }
@@ -44,12 +44,13 @@ export const useAuthStore = create<AuthState>((set, get) => {
     hasPermission: (permission: string | string[]) => {
       const { user } = get();
       if (!user) return false;
-      // system_administrator typically has all permissions
-      if (user.roles.includes('system_administrator')) return true;
+      // system_administrator has all permissions
+      if (user.roles?.includes('system_administrator')) return true;
+      const userPerms = user.permissions || [];
       if (Array.isArray(permission)) {
-        return permission.some((p) => user.permissions.includes(p));
+        return permission.some((p) => userPerms.includes(p));
       }
-      return user.permissions.includes(permission);
+      return userPerms.includes(permission);
     },
   };
 });

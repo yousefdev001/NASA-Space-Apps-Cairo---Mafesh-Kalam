@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -10,65 +10,119 @@ import {
   FileText,
   GraduationCap,
   ShieldCheck,
+  LucideIcon,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { UserRole } from '../../types/auth.types';
+import apiClient from '../../api/client';
 import { clsx } from 'clsx';
 
-export const Sidebar: React.FC = () => {
-  const { user } = useAuthStore();
+interface NavItem {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  badge?: string;
+  badgeColor?: string;
+  permission?: string;
+  roles?: UserRole[];
+}
 
-  const navItems = [
+export const Sidebar: React.FC = () => {
+  const { hasRole, hasPermission } = useAuthStore();
+  const [unresolvedAlertsCount, setUnresolvedAlertsCount] = useState<number | null>(null);
+
+  // Dynamically fetch unresolved alert count if operator has view_alerts permission
+  useEffect(() => {
+    if (!hasPermission('view_alerts')) return;
+
+    let isMounted = true;
+    apiClient
+      .get('/alerts/unresolved-count')
+      .then((res) => {
+        if (isMounted && res.data?.data?.total_unresolved !== undefined) {
+          setUnresolvedAlertsCount(res.data.data.total_unresolved);
+        }
+      })
+      .catch(() => {
+        // Fallback gracefully to default badge value on network/mock error
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hasPermission]);
+
+  const navItems: NavItem[] = [
     {
       to: '/mission-control',
       label: 'Mission Control',
       icon: LayoutDashboard,
       badge: 'LIVE',
+      permission: 'view_vital_readings',
     },
     {
       to: '/astronauts',
       label: 'Crew Roster',
       icon: Users,
+      permission: 'view_astronauts',
     },
     {
       to: '/missions',
       label: 'Missions & EVA',
       icon: Compass,
+      permission: 'view_missions',
     },
     {
       to: '/telemetry',
       label: 'Live Telemetry',
       icon: Activity,
+      permission: 'view_vital_readings',
     },
     {
       to: '/ai-insights',
       label: 'AI Clinical Review',
       icon: BrainCircuit,
       badge: 'HITL',
+      permission: 'view_ai_insights',
     },
     {
       to: '/alerts',
       label: 'Alert Triage',
       icon: AlertTriangle,
-      badge: '2',
+      badge: unresolvedAlertsCount !== null ? String(unresolvedAlertsCount) : '2',
       badgeColor: 'bg-rose-500/20 text-rose-300 border border-rose-500/40',
+      permission: 'view_alerts',
     },
     {
       to: '/reports',
       label: 'Reports & Forensic',
       icon: FileText,
+      permission: 'view_reports',
     },
     {
       to: '/academy',
       label: 'Space Academy',
       icon: GraduationCap,
+      permission: 'view_academy',
     },
     {
       to: '/audit',
       label: 'Audit & Hash Chain',
       icon: ShieldCheck,
+      permission: 'view_audit_logs',
       roles: ['system_administrator', 'auditor_compliance'],
     },
   ];
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.roles && !hasRole(item.roles)) {
+      return false;
+    }
+    if (item.permission && !hasPermission(item.permission)) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <aside className="w-64 border-r border-[#1E3A5F] bg-[#050B14]/70 backdrop-blur-md flex flex-col justify-between shrink-0 select-none">
@@ -77,43 +131,38 @@ export const Sidebar: React.FC = () => {
           MISSION SYSTEMS
         </div>
 
-        {navItems
-          .filter((item) => {
-            if (!item.roles) return true;
-            return item.roles.some((r) => user?.roles.includes(r as any));
-          })
-          .map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  clsx(
-                    'flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
-                    isActive
-                      ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 shadow-[0_0_12px_rgba(0,229,255,0.15)]'
-                      : 'text-slate-300 hover:bg-[#0B132B] hover:text-white border border-transparent'
-                  )
-                }
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className="w-4 h-4 text-cyan-400" />
-                  <span>{item.label}</span>
-                </div>
-                {item.badge && (
-                  <span
-                    className={clsx(
-                      'text-[10px] font-mono px-2 py-0.5 rounded-full font-bold',
-                      item.badgeColor || 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                    )}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-              </NavLink>
-            );
-          })}
+        {visibleNavItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                clsx(
+                  'flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
+                  isActive
+                    ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 shadow-[0_0_12px_rgba(0,229,255,0.15)]'
+                    : 'text-slate-300 hover:bg-[#0B132B] hover:text-white border border-transparent'
+                )
+              }
+            >
+              <div className="flex items-center gap-3">
+                <Icon className="w-4 h-4 text-cyan-400" />
+                <span>{item.label}</span>
+              </div>
+              {item.badge && (
+                <span
+                  className={clsx(
+                    'text-[10px] font-mono px-2 py-0.5 rounded-full font-bold',
+                    item.badgeColor || 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                  )}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </NavLink>
+          );
+        })}
       </div>
 
       {/* System Status Footer in Sidebar */}

@@ -34,7 +34,7 @@ export const EcgCanvas: React.FC<EcgCanvasProps> = ({
     window.addEventListener('resize', resize);
 
     // Standard P-Q-R-S-T wave function
-    const getEcgPoint = (x: number, width: number, bpmVal: number) => {
+    const getEcgPoint = (x: number, _width: number, bpmVal: number) => {
       // Period based on heart rate
       const period = (60 / bpmVal) * 120; // pixels per cardiac cycle
       const cyclePos = (x % period) / period; // 0 to 1

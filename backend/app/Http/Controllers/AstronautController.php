@@ -31,7 +31,7 @@ class AstronautController extends Controller
                 'astronauts.is_active'
             );
 
-        if ($request->has('search')) {
+        if ($request->has('search') && ! empty($request->query('search'))) {
             $search = '%'.$request->query('search').'%';
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', $search)
@@ -40,7 +40,24 @@ class AstronautController extends Controller
             });
         }
 
-        $astronauts = $query->orderBy('id')->get();
+        $astronauts = $query->orderBy('id')->get()->map(function ($a) {
+            $latestVital = DB::table('vital_readings')
+                ->where('astronaut_id', $a->id)
+                ->latest('measured_at')
+                ->first();
+
+            $mission = DB::table('mission_crew_assignments')
+                ->join('missions', 'mission_crew_assignments.mission_id', '=', 'missions.id')
+                ->where('mission_crew_assignments.astronaut_id', $a->id)
+                ->select('missions.mission_code', 'missions.name')
+                ->first();
+
+            $a->status = $latestVital ? $latestVital->status : 'nominal';
+            $a->latest_hr = $latestVital ? (int) $latestVital->heart_rate_bpm : 68;
+            $a->mission_name = $mission ? ($mission->mission_code.' · '.$mission->name) : 'Orbital Reserve';
+
+            return $a;
+        });
 
         return ApiResponse::success($astronauts);
     }
@@ -64,7 +81,7 @@ class AstronautController extends Controller
         $missions = DB::table('mission_crew_assignments')
             ->join('missions', 'mission_crew_assignments.mission_id', '=', 'missions.id')
             ->where('mission_crew_assignments.astronaut_id', $id)
-            ->select('missions.id', 'missions.mission_code', 'missions.name', 'missions.status', 'mission_crew_assignments.crew_role')
+            ->select('missions.*', 'mission_crew_assignments.crew_role', 'mission_crew_assignments.is_primary_crew')
             ->get();
 
         return ApiResponse::success([

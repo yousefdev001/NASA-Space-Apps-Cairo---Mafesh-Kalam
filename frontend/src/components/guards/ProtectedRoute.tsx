@@ -7,12 +7,14 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: UserRole[];
   requiredPermissions?: string[];
+  redirectTo?: string;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   allowedRoles,
   requiredPermissions,
+  redirectTo,
 }) => {
   const { isAuthenticated, user, hasRole, hasPermission } = useAuthStore();
 
@@ -21,11 +23,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (allowedRoles && !hasRole(allowedRoles)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to={redirectTo || '/unauthorized'} replace />;
   }
 
   if (requiredPermissions && !hasPermission(requiredPermissions)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to={redirectTo || '/unauthorized'} replace />;
   }
 
   return <>{children}</>;

@@ -4,8 +4,22 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { BrainCircuit, Check, X, Edit3, Cpu, AlertTriangle } from 'lucide-react';
 
+interface InsightItem {
+  id: number;
+  uuid: string;
+  astronaut: string;
+  model: string;
+  type: string;
+  title: string;
+  confidence: number;
+  severity: 'info' | 'medium' | 'high' | 'critical';
+  description: string;
+  recommendation: string;
+  status: 'pending_review' | 'approved' | 'rejected' | 'modified';
+}
+
 export const AiInsightsPage: React.FC = () => {
-  const [insights, setInsights] = useState([
+  const [insights, setInsights] = useState<InsightItem[]>([
     {
       id: 1,
       uuid: 'ins-001',

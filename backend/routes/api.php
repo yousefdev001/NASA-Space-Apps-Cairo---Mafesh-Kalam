@@ -37,11 +37,17 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/public/articles', [ArticleController::class, 'publicArticles']);
 Route::get('/public/articles/{slug}', [ArticleController::class, 'publicArticleDetail']);
 
-// Public Academy Overview & Leaderboard
+// Space Academy (Curricula, Lessons, Quizzes, Mini-Games, Leaderboard & Badges)
 Route::prefix('academy')->group(function () {
     Route::get('/courses', [AcademyController::class, 'courses']);
     Route::get('/courses/{id}', [AcademyController::class, 'courseDetail']);
+    Route::get('/courses/{courseId}/lessons/{lessonId}', [AcademyController::class, 'lessonDetail']);
+    Route::get('/lessons/{lessonId}', [AcademyController::class, 'singleLessonDetail']);
+    Route::post('/lessons/{lessonId}/submit-quiz', [AcademyController::class, 'submitQuiz']);
     Route::get('/mini-games', [AcademyController::class, 'miniGames']);
+    Route::post('/mini-games/{id}/submit-score', [AcademyController::class, 'submitGameScore']);
+    Route::get('/badges', [AcademyController::class, 'badges']);
+    Route::get('/my-progress', [AcademyController::class, 'myProgress']);
     Route::get('/leaderboard', [AcademyController::class, 'leaderboard']);
 });
 
@@ -142,18 +148,6 @@ Route::middleware('auth:sanctum')->group(function () {
             ->middleware('permission:export_reports_csv');
         Route::get('/{id}/forensic', [ReportController::class, 'forensicTimeline'])
             ->middleware('permission:view_forensic_timeline');
-    });
-
-    // Interactive Space Academy (Authenticated User Progress)
-    Route::prefix('academy')->group(function () {
-        Route::get('/courses/{courseId}/lessons/{lessonId}', [AcademyController::class, 'lessonDetail'])
-            ->middleware('permission:view_academy');
-        Route::post('/lessons/{lessonId}/submit-quiz', [AcademyController::class, 'submitQuiz'])
-            ->middleware('permission:view_academy');
-        Route::get('/badges', [AcademyController::class, 'badges'])
-            ->middleware('permission:view_academy');
-        Route::get('/my-progress', [AcademyController::class, 'myProgress'])
-            ->middleware('permission:view_own_progress');
     });
 
     // Content Management (Educational Articles)
