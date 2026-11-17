@@ -14,7 +14,13 @@ use App\Http\Responses\ApiResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
-// Health & System Info
+/*
+|--------------------------------------------------------------------------
+| Public Routes (No Authentication Required)
+|--------------------------------------------------------------------------
+*/
+
+// Ground Station Health & Protocol Handshake
 Route::get('/health', function () {
     return ApiResponse::success([
         'status' => 'operational',
@@ -24,98 +30,149 @@ Route::get('/health', function () {
     ], 'AuraMed Ground Station is fully operational.');
 });
 
-// Authentication Routes
-Route::prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
+// Authentication: Login & Sanctum Token Generation
+Route::post('/auth/login', [AuthController::class, 'login']);
 
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/me', [AuthController::class, 'me']);
-        Route::post('/logout', [AuthController::class, 'logout']);
-    });
-});
+// Public Educational Space Articles
+Route::get('/public/articles', [ArticleController::class, 'publicArticles']);
+Route::get('/public/articles/{slug}', [ArticleController::class, 'publicArticleDetail']);
 
-// Mission Control Dashboard Telemetry
-Route::get('/dashboard/mission-control', [MissionControlController::class, 'dashboard']);
-
-// Astronauts Roster & Medical Dossiers
-Route::get('/astronauts', [AstronautController::class, 'index']);
-Route::get('/astronauts/{id}', [AstronautController::class, 'show']);
-
-// Telemetry & Bio-Scan
-Route::prefix('telemetry')->group(function () {
-    Route::post('/ingest', [TelemetryController::class, 'ingest']);
-    Route::get('/{astronautId}/latest', [TelemetryController::class, 'latest']);
-});
-
-// Organ Systems Reference
-Route::get('/organ-systems', function () {
-    return ApiResponse::success(DB::table('organ_systems')->orderBy('sort_order')->get());
-});
-
-// Missions
-Route::get('/missions', function () {
-    return ApiResponse::success(
-        DB::table('missions')->orderBy('launch_date', 'desc')->get()
-    );
-});
-
-// AI Insights HITL Queue & Review Workflow
-Route::prefix('ai-insights')->group(function () {
-    Route::get('/', [AiInsightController::class, 'index']);
-    Route::get('/stats', [AiInsightController::class, 'stats']);
-    Route::post('/ingest', [AiInsightController::class, 'ingest']);
-    Route::get('/{id}', [AiInsightController::class, 'show']);
-    Route::post('/{id}/approve', [AiInsightController::class, 'approve']);
-    Route::post('/{id}/reject', [AiInsightController::class, 'reject']);
-    Route::post('/{id}/modify', [AiInsightController::class, 'modify']);
-});
-
-// Alerts Triage System
-Route::prefix('alerts')->group(function () {
-    Route::get('/', [AlertController::class, 'index']);
-    Route::get('/unresolved-count', [AlertController::class, 'unresolvedCount']);
-    Route::get('/{id}', [AlertController::class, 'show']);
-    Route::post('/{id}/acknowledge', [AlertController::class, 'acknowledge']);
-    Route::post('/{id}/escalate', [AlertController::class, 'escalate']);
-    Route::post('/{id}/resolve', [AlertController::class, 'resolve']);
-    Route::post('/{id}/dismiss', [AlertController::class, 'dismiss']);
-});
-
-// Reports & Forensic Timeline
-Route::prefix('reports')->group(function () {
-    Route::get('/', [ReportController::class, 'index']);
-    Route::post('/', [ReportController::class, 'store']);
-    Route::get('/{id}', [ReportController::class, 'show']);
-    Route::post('/{id}/approve', [ReportController::class, 'approve']);
-    Route::get('/{id}/export/pdf', [ReportController::class, 'exportPdf']);
-    Route::get('/{id}/export/csv', [ReportController::class, 'exportCsv']);
-    Route::get('/{id}/forensic', [ReportController::class, 'forensicTimeline']);
-});
-
-// Space Academy & Gamification
+// Public Academy Overview & Leaderboard
 Route::prefix('academy')->group(function () {
     Route::get('/courses', [AcademyController::class, 'courses']);
     Route::get('/courses/{id}', [AcademyController::class, 'courseDetail']);
-    Route::get('/courses/{courseId}/lessons/{lessonId}', [AcademyController::class, 'lessonDetail']);
-    Route::post('/lessons/{lessonId}/submit-quiz', [AcademyController::class, 'submitQuiz']);
     Route::get('/mini-games', [AcademyController::class, 'miniGames']);
-    Route::get('/badges', [AcademyController::class, 'badges']);
-    Route::get('/my-progress', [AcademyController::class, 'myProgress']);
     Route::get('/leaderboard', [AcademyController::class, 'leaderboard']);
 });
 
-// Educational Articles (Public & Management)
-Route::get('/public/articles', [ArticleController::class, 'publicArticles']);
-Route::get('/public/articles/{slug}', [ArticleController::class, 'publicArticleDetail']);
-Route::prefix('articles')->group(function () {
-    Route::get('/', [ArticleController::class, 'index']);
-    Route::post('/', [ArticleController::class, 'store']);
-    Route::post('/{id}/publish', [ArticleController::class, 'publish']);
-    Route::delete('/{id}', [ArticleController::class, 'destroy']);
-});
+/*
+|--------------------------------------------------------------------------
+| Protected Mission Systems (Sanctum Auth + Spatie RBAC Granular Permissions)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->group(function () {
 
-// Security & Cryptographic Audit Trail
-Route::prefix('audit-logs')->group(function () {
-    Route::get('/', [AuditController::class, 'index']);
-    Route::get('/verify', [AuditController::class, 'verifyIntegrity']);
+    // Identity & Session Management
+    Route::prefix('auth')->group(function () {
+        Route::get('/me', [AuthController::class, 'me']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+    });
+
+    // Mission Control Live Telemetry
+    Route::get('/dashboard/mission-control', [MissionControlController::class, 'dashboard'])
+        ->middleware('permission:view_vital_readings');
+
+    // Astronauts Roster & Medical Records
+    Route::prefix('astronauts')->group(function () {
+        Route::get('/', [AstronautController::class, 'index'])
+            ->middleware('permission:view_astronauts');
+        Route::get('/{id}', [AstronautController::class, 'show'])
+            ->middleware('permission:view_astronauts');
+    });
+
+    // Missions & Crew Readiness
+    Route::get('/missions', function () {
+        return ApiResponse::success(
+            DB::table('missions')->orderBy('launch_date', 'desc')->get()
+        );
+    })->middleware('permission:view_missions');
+
+    // Organ Systems Reference Catalog
+    Route::get('/organ-systems', function () {
+        return ApiResponse::success(DB::table('organ_systems')->orderBy('sort_order')->get());
+    })->middleware('permission:view_organ_telemetry');
+
+    // Telemetry Sync & Bio-Scan Downlink
+    Route::prefix('telemetry')->group(function () {
+        Route::post('/ingest', [TelemetryController::class, 'ingest'])
+            ->middleware('permission:ingest_telemetry_data');
+        Route::get('/{astronautId}/latest', [TelemetryController::class, 'latest'])
+            ->middleware('permission:view_vital_readings');
+    });
+
+    // AI Insights HITL Queue & Review Workflow
+    Route::prefix('ai-insights')->group(function () {
+        Route::get('/', [AiInsightController::class, 'index'])
+            ->middleware('permission:view_ai_insights');
+        Route::get('/stats', [AiInsightController::class, 'stats'])
+            ->middleware('permission:view_ai_insights');
+        Route::post('/ingest', [AiInsightController::class, 'ingest'])
+            ->middleware('permission:ingest_telemetry_data');
+        Route::get('/{id}', [AiInsightController::class, 'show'])
+            ->middleware('permission:view_ai_insights');
+        Route::post('/{id}/approve', [AiInsightController::class, 'approve'])
+            ->middleware('permission:approve_ai_insights');
+        Route::post('/{id}/reject', [AiInsightController::class, 'reject'])
+            ->middleware('permission:reject_ai_insights');
+        Route::post('/{id}/modify', [AiInsightController::class, 'modify'])
+            ->middleware('permission:modify_ai_insights');
+    });
+
+    // Alerts Triage & Incident Workflow
+    Route::prefix('alerts')->group(function () {
+        Route::get('/', [AlertController::class, 'index'])
+            ->middleware('permission:view_alerts');
+        Route::get('/unresolved-count', [AlertController::class, 'unresolvedCount'])
+            ->middleware('permission:view_alerts');
+        Route::get('/{id}', [AlertController::class, 'show'])
+            ->middleware('permission:view_alerts');
+        Route::post('/{id}/acknowledge', [AlertController::class, 'acknowledge'])
+            ->middleware('permission:acknowledge_alerts');
+        Route::post('/{id}/escalate', [AlertController::class, 'escalate'])
+            ->middleware('permission:escalate_alerts');
+        Route::post('/{id}/resolve', [AlertController::class, 'resolve'])
+            ->middleware('permission:resolve_alerts');
+        Route::post('/{id}/dismiss', [AlertController::class, 'dismiss'])
+            ->middleware('permission:dismiss_alerts');
+    });
+
+    // Medical Reports & Forensic Timelines (RPT-01 to RPT-09)
+    Route::prefix('reports')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])
+            ->middleware('permission:view_reports');
+        Route::post('/', [ReportController::class, 'store'])
+            ->middleware('permission:create_reports');
+        Route::get('/{id}', [ReportController::class, 'show'])
+            ->middleware('permission:view_reports');
+        Route::post('/{id}/approve', [ReportController::class, 'approve'])
+            ->middleware('permission:approve_reports');
+        Route::get('/{id}/export/pdf', [ReportController::class, 'exportPdf'])
+            ->middleware('permission:export_reports_pdf');
+        Route::get('/{id}/export/csv', [ReportController::class, 'exportCsv'])
+            ->middleware('permission:export_reports_csv');
+        Route::get('/{id}/forensic', [ReportController::class, 'forensicTimeline'])
+            ->middleware('permission:view_forensic_timeline');
+    });
+
+    // Interactive Space Academy (Authenticated User Progress)
+    Route::prefix('academy')->group(function () {
+        Route::get('/courses/{courseId}/lessons/{lessonId}', [AcademyController::class, 'lessonDetail'])
+            ->middleware('permission:view_academy');
+        Route::post('/lessons/{lessonId}/submit-quiz', [AcademyController::class, 'submitQuiz'])
+            ->middleware('permission:view_academy');
+        Route::get('/badges', [AcademyController::class, 'badges'])
+            ->middleware('permission:view_academy');
+        Route::get('/my-progress', [AcademyController::class, 'myProgress'])
+            ->middleware('permission:view_own_progress');
+    });
+
+    // Content Management (Educational Articles)
+    Route::prefix('articles')->group(function () {
+        Route::get('/', [ArticleController::class, 'index'])
+            ->middleware('permission:view_articles');
+        Route::post('/', [ArticleController::class, 'store'])
+            ->middleware('permission:create_articles');
+        Route::post('/{id}/publish', [ArticleController::class, 'publish'])
+            ->middleware('permission:publish_articles');
+        Route::delete('/{id}', [ArticleController::class, 'destroy'])
+            ->middleware('permission:delete_articles');
+    });
+
+    // Security & Non-Repudiation Audit Ledger
+    Route::prefix('audit-logs')->group(function () {
+        Route::get('/', [AuditController::class, 'index'])
+            ->middleware('permission:view_audit_logs');
+        Route::get('/verify', [AuditController::class, 'verifyIntegrity'])
+            ->middleware('permission:verify_audit_chain');
+    });
 });

@@ -5,22 +5,36 @@ namespace Tests\Feature;
 use App\Models\AiInsight;
 use App\Models\Alert;
 use App\Models\Article;
-use App\Models\Report;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class AuraMedApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected User $flightSurgeon;
+
+    protected User $cadet;
+
+    protected User $auditor;
+
+    protected User $groundController;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed();
+
+        $this->flightSurgeon = User::where('email', 'flight_surgeon@auramed.nasa.gov')->firstOrFail();
+        $this->cadet = User::where('email', 'cadet_student@auramed.nasa.gov')->firstOrFail();
+        $this->auditor = User::where('email', 'system_administrator@auramed.nasa.gov')->firstOrFail();
+        $this->groundController = User::where('email', 'ground_controller@auramed.nasa.gov')->firstOrFail();
     }
 
     /**
-     * Test system health endpoint.
+     * Test public health endpoint without authentication.
      */
     public function test_health_endpoint_returns_operational(): void
     {
@@ -32,7 +46,7 @@ class AuraMedApiTest extends TestCase
     }
 
     /**
-     * Test operator authentication and Sanctum token generation.
+     * Test operator authentication and Sanctum bearer token creation.
      */
     public function test_flight_surgeon_can_login_and_receive_token(): void
     {
@@ -59,10 +73,55 @@ class AuraMedApiTest extends TestCase
     }
 
     /**
-     * Test Mission Control dashboard data endpoint.
+     * Verify unauthenticated requests to protected endpoints return 401.
+     */
+    public function test_unauthenticated_requests_return_401(): void
+    {
+        $response = $this->getJson('/api/dashboard/mission-control');
+        $response->assertStatus(401)
+            ->assertJsonPath('success', false);
+    }
+
+    /**
+     * Verify RBAC permission separation: Cadet is forbidden (403) from approving AI insights.
+     */
+    public function test_cadet_forbidden_from_approving_ai_insights(): void
+    {
+        Sanctum::actingAs($this->cadet);
+        $insight = AiInsight::first();
+
+        $response = $this->postJson("/api/ai-insights/{$insight->id}/approve", [
+            'reviewer_notes' => 'Attempt by cadet',
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJsonPath('success', false);
+    }
+
+    /**
+     * Verify RBAC permission separation: Cadet is forbidden (403) from generating clinical reports.
+     */
+    public function test_cadet_forbidden_from_generating_reports(): void
+    {
+        Sanctum::actingAs($this->cadet);
+
+        $response = $this->postJson('/api/reports', [
+            'title' => 'Unauthorized Report',
+            'report_type' => 'crew_health_summary',
+            'summary' => 'Cadet testing',
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJsonPath('success', false);
+    }
+
+    /**
+     * Test Mission Control dashboard access for authorized Flight Surgeon.
      */
     public function test_mission_control_dashboard_returns_telemetry_payload(): void
     {
+        Sanctum::actingAs($this->flightSurgeon);
+
         $response = $this->getJson('/api/dashboard/mission-control');
 
         $response->assertStatus(200)
@@ -80,10 +139,12 @@ class AuraMedApiTest extends TestCase
     }
 
     /**
-     * Test astronauts roster endpoint.
+     * Test astronauts roster for authorized personnel.
      */
     public function test_astronauts_roster_returns_crew(): void
     {
+        Sanctum::actingAs($this->flightSurgeon);
+
         $response = $this->getJson('/api/astronauts');
 
         $response->assertStatus(200)
@@ -93,14 +154,16 @@ class AuraMedApiTest extends TestCase
     }
 
     /**
-     * Test telemetry ingestion from mobile bio-scan.
+     * Test telemetry ingestion by authorized Ground Controller.
      */
-    public function test_telemetry_batch_ingestion(): void
+    public function test_telemetry_batch_ingestion_by_ground_controller(): void
     {
+        Sanctum::actingAs($this->groundController);
+
         $payload = [
             'astronaut_id' => 1,
             'mission_id' => 1,
-            'device_id' => 'AURAMED-CREW-PAD-01',
+            'device_id' => 'AURAMED-DOWNLINK-01',
             'session_type' => 'sync',
             'vitals' => [
                 [
@@ -127,10 +190,12 @@ class AuraMedApiTest extends TestCase
     }
 
     /**
-     * Test AI insights review lifecycle (HITL).
+     * Test AI insights review lifecycle (HITL) by Flight Surgeon.
      */
-    public function test_ai_insights_review_workflow(): void
+    public function test_ai_insights_review_workflow_by_flight_surgeon(): void
     {
+        Sanctum::actingAs($this->flightSurgeon);
+
         $insight = AiInsight::where('review_status', 'pending_review')->first();
         $this->assertNotNull($insight);
 
@@ -159,6 +224,8 @@ class AuraMedApiTest extends TestCase
      */
     public function test_alerts_triage_workflow(): void
     {
+        Sanctum::actingAs($this->flightSurgeon);
+
         $alert = Alert::first();
         $this->assertNotNull($alert);
 
@@ -195,6 +262,8 @@ class AuraMedApiTest extends TestCase
      */
     public function test_reports_generation_and_export(): void
     {
+        Sanctum::actingAs($this->flightSurgeon);
+
         // 1. Create Report
         $payload = [
             'title' => 'Artemis Crew Health EVA Debrief',
@@ -240,12 +309,13 @@ class AuraMedApiTest extends TestCase
      */
     public function test_space_academy_quiz_and_gamification(): void
     {
-        // 1. Courses list
+        // 1. Public courses list
         $courseRes = $this->getJson('/api/academy/courses');
         $courseRes->assertStatus(200)
             ->assertJsonPath('success', true);
 
-        // 2. Quiz submission
+        // 2. Quiz submission (Authenticated Cadet)
+        Sanctum::actingAs($this->cadet);
         $lessonId = 1;
         $quizRes = $this->postJson("/api/academy/lessons/{$lessonId}/submit-quiz", [
             'answers' => [1 => 1], // Correct answer index
@@ -253,7 +323,7 @@ class AuraMedApiTest extends TestCase
         $quizRes->assertStatus(200)
             ->assertJsonPath('data.passed', true);
 
-        // 3. Leaderboard
+        // 3. Public Leaderboard
         $leadRes = $this->getJson('/api/academy/leaderboard');
         $leadRes->assertStatus(200)
             ->assertJsonPath('success', true);
@@ -264,12 +334,12 @@ class AuraMedApiTest extends TestCase
      */
     public function test_articles_public_and_slug_resolution(): void
     {
-        // 1. List
+        // 1. Public List (No Auth)
         $listRes = $this->getJson('/api/public/articles?audience=kids');
         $listRes->assertStatus(200)
             ->assertJsonPath('success', true);
 
-        // 2. Detail by slug
+        // 2. Public Detail by slug (No Auth)
         $article = Article::where('target_audience', 'kids')->first();
         $this->assertNotNull($article);
 
@@ -283,6 +353,8 @@ class AuraMedApiTest extends TestCase
      */
     public function test_audit_chain_cryptographic_verification(): void
     {
+        Sanctum::actingAs($this->auditor);
+
         $verifyRes = $this->getJson('/api/audit-logs/verify');
         $verifyRes->assertStatus(200)
             ->assertJsonPath('data.is_valid', true)
