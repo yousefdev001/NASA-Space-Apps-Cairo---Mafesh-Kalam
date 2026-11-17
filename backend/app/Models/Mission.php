@@ -13,8 +13,10 @@ class Mission extends Model
 
     protected $casts = [
         'launch_date' => 'datetime',
-        'scheduled_end_date' => 'datetime',
-        'actual_end_date' => 'datetime',
+        'expected_return_date' => 'datetime',
+        'actual_return_date' => 'datetime',
+        'is_primary' => 'boolean',
+        'mission_elapsed_seconds' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -22,7 +24,7 @@ class Mission extends Model
     public function crew()
     {
         return $this->belongsToMany(Astronaut::class, 'mission_crew_assignments')
-            ->withPivot(['role_in_mission', 'assigned_at', 'eva_certified'])
+            ->withPivot(['crew_role', 'assigned_at', 'is_primary_crew'])
             ->withTimestamps();
     }
 
@@ -34,5 +36,10 @@ class Mission extends Model
     public function reports()
     {
         return $this->hasMany(Report::class);
+    }
+
+    public function getCodeAttribute(): string
+    {
+        return $this->mission_code;
     }
 }

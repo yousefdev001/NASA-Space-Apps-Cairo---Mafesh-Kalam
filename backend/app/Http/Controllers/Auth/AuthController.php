@@ -8,7 +8,6 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -24,11 +23,11 @@ class AuthController extends Controller
 
         $user = User::where('email', $validated['email'])->first();
 
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (! $user || ! Hash::check($validated['password'], $user->password)) {
             return ApiResponse::error('Invalid credentials provided.', 401);
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             return ApiResponse::error('Your account has been deactivated by mission control.', 403);
         }
 

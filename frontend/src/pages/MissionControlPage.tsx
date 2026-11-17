@@ -1,16 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Activity,
-  Heart,
-  ShieldAlert,
-  Radio,
-  Flame,
-  Wind,
-  Cpu,
-  CheckCircle2,
-  AlertTriangle,
-  ArrowUpRight,
-} from 'lucide-react';
+import { Radio, AlertTriangle, Cpu } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -18,7 +7,7 @@ import { EcgCanvas } from '../components/charts/EcgCanvas';
 import { OrganRadarChart } from '../components/charts/OrganRadarChart';
 import { RadiationGauge } from '../components/charts/RadiationGauge';
 import { VitalsStreamChart } from '../components/charts/VitalsStreamChart';
-import { OrganTelemetryGrid, DEFAULT_ORGANS_DATA } from '../components/telemetry/OrganTelemetryGrid';
+import { OrganTelemetryGrid } from '../components/telemetry/OrganTelemetryGrid';
 
 interface CrewMember {
   id: string;

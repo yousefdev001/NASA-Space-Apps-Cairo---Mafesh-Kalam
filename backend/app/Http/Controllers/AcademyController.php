@@ -6,8 +6,8 @@ use App\Http\Responses\ApiResponse;
 use App\Models\AcademyCourse;
 use App\Models\AcademyLesson;
 use App\Models\AcademyMiniGame;
-use App\Models\AcademyQuiz;
 use App\Models\Badge;
+use App\Models\User;
 use App\Models\UserAcademyProgress;
 use App\Models\UserBadge;
 use App\Models\UserXpRecord;
@@ -72,14 +72,14 @@ class AcademyController extends Controller
     public function submitQuiz(Request $request, $lessonId)
     {
         $lesson = AcademyLesson::with('quizzes')->findOrFail($lessonId);
-        $user = auth()->user() ?? \App\Models\User::first();
+        $user = auth()->user() ?? User::first();
 
         $answers = $request->input('answers', []); // map of quiz_id => selected_option_index
         $totalQuizzes = $lesson->quizzes->count();
         $correctCount = 0;
 
         foreach ($lesson->quizzes as $quiz) {
-            if (isset($answers[$quiz->id]) && (int)$answers[$quiz->id] === $quiz->correct_option_index) {
+            if (isset($answers[$quiz->id]) && (int) $answers[$quiz->id] === $quiz->correct_option_index) {
                 $correctCount++;
             }
         }
@@ -128,6 +128,7 @@ class AcademyController extends Controller
     public function miniGames()
     {
         $games = AcademyMiniGame::where('is_active', true)->get();
+
         return ApiResponse::success($games, 'Academy mini-games retrieved.');
     }
 
@@ -137,6 +138,7 @@ class AcademyController extends Controller
     public function badges()
     {
         $badges = Badge::orderBy('xp_required', 'asc')->get();
+
         return ApiResponse::success($badges, 'Badges catalog retrieved.');
     }
 
@@ -145,16 +147,22 @@ class AcademyController extends Controller
      */
     public function myProgress()
     {
-        $user = auth()->user() ?? \App\Models\User::first();
+        $user = auth()->user() ?? User::first();
 
         $totalXp = UserXpRecord::where('user_id', $user->id)->sum('xp_earned');
 
         $rank = 'Cadet';
-        if ($totalXp >= 2000) $rank = 'Mission Director';
-        elseif ($totalXp >= 1000) $rank = 'Flight Surgeon';
-        elseif ($totalXp >= 600) $rank = 'Commander';
-        elseif ($totalXp >= 300) $rank = 'Pilot';
-        elseif ($totalXp >= 100) $rank = 'Specialist';
+        if ($totalXp >= 2000) {
+            $rank = 'Mission Director';
+        } elseif ($totalXp >= 1000) {
+            $rank = 'Flight Surgeon';
+        } elseif ($totalXp >= 600) {
+            $rank = 'Commander';
+        } elseif ($totalXp >= 300) {
+            $rank = 'Pilot';
+        } elseif ($totalXp >= 100) {
+            $rank = 'Specialist';
+        }
 
         $earnedBadges = UserBadge::with('badge')
             ->where('user_id', $user->id)

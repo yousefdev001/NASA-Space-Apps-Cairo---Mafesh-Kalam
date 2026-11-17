@@ -13,9 +13,11 @@ class Astronaut extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'dob' => 'date',
+        'date_of_birth' => 'date',
         'is_active' => 'boolean',
-        'emergency_contact' => 'array',
+        'eva_certified' => 'boolean',
+        'total_eva_hours' => 'decimal:2',
+        'total_space_days' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -28,7 +30,7 @@ class Astronaut extends Model
     public function missions()
     {
         return $this->belongsToMany(Mission::class, 'mission_crew_assignments')
-            ->withPivot(['role_in_mission', 'assigned_at', 'eva_certified'])
+            ->withPivot(['crew_role', 'assigned_at', 'is_primary_crew'])
             ->withTimestamps();
     }
 
@@ -55,5 +57,19 @@ class Astronaut extends Model
     public function reports()
     {
         return $this->hasMany(Report::class);
+    }
+
+    public function getFirstNameAttribute(): string
+    {
+        $parts = explode(' ', $this->full_name);
+
+        return $parts[0] ?? $this->full_name;
+    }
+
+    public function getLastNameAttribute(): string
+    {
+        $parts = explode(' ', $this->full_name);
+
+        return count($parts) > 1 ? implode(' ', array_slice($parts, 1)) : '';
     }
 }

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { BookOpen, Search, Clock, ArrowRight, Sparkles } from 'lucide-react';
+import { BookOpen, Clock, ArrowRight, Search } from 'lucide-react';
 
 export const ArticlesPage: React.FC = () => {
   const [audience, setAudience] = useState<'all' | 'kids' | 'adults'>('all');
@@ -99,36 +98,49 @@ export const ArticlesPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex items-center gap-2 bg-[#0B132B] p-1 rounded-xl border border-[#1E3A5F]">
-          <button
-            onClick={() => setAudience('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-              audience === 'all' ? 'bg-cyan-500 text-slate-950' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            All Articles
-          </button>
-          <button
-            onClick={() => setAudience('kids')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-              audience === 'kids'
-                ? 'bg-amber-500 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Junior Cadets (Kids)
-          </button>
-          <button
-            onClick={() => setAudience('adults')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
-              audience === 'adults'
-                ? 'bg-cyan-500 text-slate-950 shadow-[0_0_10px_rgba(0,229,255,0.3)]'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Clinical Flight Surgeons
-          </button>
+        {/* Search & Filter Pills */}
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative w-full sm:w-64">
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search space articles..."
+              className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-[#0B132B] border border-[#1E3A5F] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 bg-[#0B132B] p-1 rounded-xl border border-[#1E3A5F]">
+            <button
+              onClick={() => setAudience('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+                audience === 'all' ? 'bg-cyan-500 text-slate-950' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              All Articles
+            </button>
+            <button
+              onClick={() => setAudience('kids')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+                audience === 'kids'
+                  ? 'bg-amber-500 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Junior Cadets (Kids)
+            </button>
+            <button
+              onClick={() => setAudience('adults')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+                audience === 'adults'
+                  ? 'bg-cyan-500 text-slate-950 shadow-[0_0_10px_rgba(0,229,255,0.3)]'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Clinical Flight Surgeons
+            </button>
+          </div>
         </div>
       </div>
 

@@ -91,7 +91,7 @@ class ArticleController extends Controller
             'is_published' => 'nullable|boolean',
         ]);
 
-        $slug = Str::slug($data['title']) . '-' . Str::lower(Str::random(6));
+        $slug = Str::slug($data['title']).'-'.Str::lower(Str::random(6));
 
         $article = Article::create([
             'uuid' => (string) Str::uuid(),
@@ -107,7 +107,7 @@ class ArticleController extends Controller
             'published_at' => ($data['is_published'] ?? false) ? now() : null,
         ]);
 
-        if (!empty($data['tags'])) {
+        if (! empty($data['tags'])) {
             $tagIds = [];
             foreach ($data['tags'] as $tagName) {
                 $tag = ArticleTag::firstOrCreate(

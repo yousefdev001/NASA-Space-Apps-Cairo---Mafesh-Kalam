@@ -10,6 +10,7 @@ class AiModelRegistry extends Model
     use HasFactory;
 
     protected $table = 'ai_model_registry';
+
     protected $guarded = ['id'];
 
     protected $casts = [

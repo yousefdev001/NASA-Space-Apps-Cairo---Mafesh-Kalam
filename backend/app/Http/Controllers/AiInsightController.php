@@ -17,7 +17,7 @@ class AiInsightController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AiInsight::with(['astronaut:id,callsign,first_name,last_name', 'job:id,model_name,analysis_type'])
+        $query = AiInsight::with(['astronaut:id,callsign,full_name', 'job:id,model_name,analysis_type'])
             ->orderBy('analyzed_at', 'desc');
 
         if ($request->has('review_status')) {
@@ -120,7 +120,7 @@ class AiInsightController extends Controller
             'ai_insights_ingested',
             'AiAnalysisJob',
             $job->id,
-            "Ingested {$job->model_name} analysis batch containing " . count($createdInsights) . " insights."
+            "Ingested {$job->model_name} analysis batch containing ".count($createdInsights).' insights.'
         );
 
         return ApiResponse::created([

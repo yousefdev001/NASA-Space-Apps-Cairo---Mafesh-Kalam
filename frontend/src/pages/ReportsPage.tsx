@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { FileText, Download, Clock, ShieldCheck, Activity } from 'lucide-react';
+import { FileText, Download } from 'lucide-react';
 
 export const ReportsPage: React.FC = () => {
   const reports = [

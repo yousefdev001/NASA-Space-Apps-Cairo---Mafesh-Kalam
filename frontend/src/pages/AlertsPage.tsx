@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { AlertTriangle, ShieldAlert, CheckCircle2, ArrowUpRight, Filter } from 'lucide-react';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 export const AlertsPage: React.FC = () => {
   const [alerts, setAlerts] = useState([

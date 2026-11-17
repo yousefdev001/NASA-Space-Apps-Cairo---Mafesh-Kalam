@@ -1,9 +1,8 @@
 import React from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
 import { MetClock } from '../components/ui/MetClock';
-import { Compass, Rocket, Calendar, MapPin, Users, CheckCircle2 } from 'lucide-react';
+import { Compass, Rocket, MapPin, Users } from 'lucide-react';
 
 export const MissionsPage: React.FC = () => {
   const missions = [

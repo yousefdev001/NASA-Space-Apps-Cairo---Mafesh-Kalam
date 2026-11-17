@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { BrainCircuit, Check, X, Edit3, Cpu, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { BrainCircuit, Check, X, Edit3, Cpu, AlertTriangle } from 'lucide-react';
 
 export const AiInsightsPage: React.FC = () => {
   const [insights, setInsights] = useState([

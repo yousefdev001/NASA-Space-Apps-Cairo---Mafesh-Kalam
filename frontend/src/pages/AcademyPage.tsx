@@ -4,12 +4,10 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import {
   GraduationCap,
-  Sparkles,
   Award,
   Gamepad2,
   BookOpen,
   Trophy,
-  CheckCircle2,
   ChevronRight,
 } from 'lucide-react';
 

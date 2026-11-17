@@ -1,9 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, Bell, LogOut, User as UserIcon, Shield, Radio } from 'lucide-react';
+import { Activity, Bell, LogOut, Shield, Radio } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { MetClock } from '../ui/MetClock';
-import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 
 export const Navbar: React.FC = () => {

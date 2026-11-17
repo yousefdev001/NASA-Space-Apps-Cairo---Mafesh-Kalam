@@ -10,7 +10,9 @@ class LoginHistory extends Model
     use HasFactory;
 
     public $timestamps = false;
+
     protected $table = 'login_history';
+
     protected $guarded = ['id'];
 
     protected $casts = [

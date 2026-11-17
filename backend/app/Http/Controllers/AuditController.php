@@ -30,8 +30,8 @@ class AuditController extends Controller
     }
 
     /**
-     * Cryptographic verification of the SHA-256 hash chain.
-     * Guarantees zero tamper and complete non-repudiation across medical actions.
+     * Cryptographic verification of both chain pointer continuity AND payload content integrity.
+     * Guarantees zero tamper and complete non-repudiation across all clinical and mission actions.
      */
     public function verifyIntegrity()
     {
@@ -40,12 +40,34 @@ class AuditController extends Controller
         $verifiedCount = 0;
         $isCompromised = false;
         $compromisedAtId = null;
+        $failureReason = null;
         $expectedPrevHash = str_repeat('0', 64);
 
         foreach ($logs as $log) {
+            // 1. Pointer chain continuity check
             if ($log->previous_hash !== $expectedPrevHash) {
                 $isCompromised = true;
                 $compromisedAtId = $log->id;
+                $failureReason = "Pointer chain link broken at block #{$log->id}.";
+                break;
+            }
+
+            // 2. Full payload content re-hash verification
+            $computedHash = AuditLog::computeHash(
+                $log->previous_hash,
+                $log->user_id,
+                $log->event_type,
+                $log->auditable_type,
+                $log->auditable_id,
+                $log->description,
+                $log->old_values,
+                $log->new_values
+            );
+
+            if ($log->current_hash !== $computedHash) {
+                $isCompromised = true;
+                $compromisedAtId = $log->id;
+                $failureReason = "Content tampering detected in block #{$log->id}. Hash mismatch.";
                 break;
             }
 
@@ -54,12 +76,13 @@ class AuditController extends Controller
         }
 
         return ApiResponse::success([
-            'is_valid' => !$isCompromised,
+            'is_valid' => ! $isCompromised,
             'verified_records' => $verifiedCount,
             'total_records' => $logs->count(),
             'compromised_at_id' => $compromisedAtId,
+            'failure_reason' => $failureReason,
             'chain_status' => $isCompromised ? 'COMPROMISED_CHAIN' : 'CRYPTO_VERIFIED_SECURE',
             'verified_at' => now()->toIso8601String(),
-        ], $isCompromised ? 'Warning: Audit chain integrity violation detected!' : 'All audit logs cryptographically verified intact.');
+        ], $isCompromised ? "Warning: {$failureReason}" : 'All audit logs and payload contents cryptographically verified intact.');
     }
 }

@@ -19,7 +19,7 @@ class ApiResponse
             'data' => $data,
         ];
 
-        if (!empty($meta)) {
+        if (! empty($meta)) {
             $response['meta'] = $meta;
         }
 
@@ -41,6 +41,7 @@ class ApiResponse
     {
         if ($paginatedData instanceof LengthAwarePaginator) {
             $array = $paginatedData->toArray();
+
             return response()->json([
                 'success' => true,
                 'message' => $message,
@@ -63,6 +64,7 @@ class ApiResponse
         // Fallback or Resource collection
         if (is_object($paginatedData) && method_exists($paginatedData, 'response')) {
             $array = $paginatedData->response()->getData(true);
+
             return response()->json([
                 'success' => true,
                 'message' => $message,

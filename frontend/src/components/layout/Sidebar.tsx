@@ -10,7 +10,6 @@ import {
   FileText,
   GraduationCap,
   ShieldCheck,
-  Settings,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { clsx } from 'clsx';

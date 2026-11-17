@@ -2,22 +2,15 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Activity,
-  Shield,
-  Radio,
   BookOpen,
   ArrowRight,
-  Heart,
-  Brain,
-  Sparkles,
   ChevronRight,
   Zap,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 import { OrganTelemetryGrid } from '../components/telemetry/OrganTelemetryGrid';
 import { EcgCanvas } from '../components/charts/EcgCanvas';
-import { MetClock } from '../components/ui/MetClock';
 
 export const LandingPage: React.FC = () => {
   const [articleAudience, setArticleAudience] = useState<'kids' | 'adults'>('adults');

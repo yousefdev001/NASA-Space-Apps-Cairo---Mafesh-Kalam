@@ -2,18 +2,9 @@ import React from 'react';
 import { Heart, Wind, Brain, Activity, Droplets, User } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { clsx } from 'clsx';
+import { OrganSystemData } from '../../types/telemetry.types';
 
-export interface OrganSystemData {
-  id: string;
-  name: string;
-  system: string;
-  score: number;
-  status: 'nominal' | 'warning' | 'critical';
-  metricValue: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-export const DEFAULT_ORGANS_DATA: OrganSystemData[] = [
+const DEFAULT_ORGANS_DATA: OrganSystemData[] = [
   {
     id: 'heart',
     name: 'Heart',

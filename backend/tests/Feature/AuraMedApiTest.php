@@ -6,7 +6,6 @@ use App\Models\AiInsight;
 use App\Models\Alert;
 use App\Models\Article;
 use App\Models\Report;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

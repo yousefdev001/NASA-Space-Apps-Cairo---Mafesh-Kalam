@@ -32,11 +32,11 @@ class AstronautController extends Controller
             );
 
         if ($request->has('search')) {
-            $search = '%' . $request->query('search') . '%';
+            $search = '%'.$request->query('search').'%';
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', $search)
-                  ->orWhere('callsign', 'like', $search)
-                  ->orWhere('specialization', 'like', $search);
+                    ->orWhere('callsign', 'like', $search)
+                    ->orWhere('specialization', 'like', $search);
             });
         }
 
@@ -52,7 +52,7 @@ class AstronautController extends Controller
     {
         $astronaut = DB::table('astronauts')->where('id', $id)->first();
 
-        if (!$astronaut) {
+        if (! $astronaut) {
             return ApiResponse::error('Astronaut not found.', 404);
         }
 

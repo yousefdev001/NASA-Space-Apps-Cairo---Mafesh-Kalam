@@ -10,7 +10,9 @@ class UserBadge extends Model
     use HasFactory;
 
     public $timestamps = false;
+
     protected $table = 'user_badges';
+
     protected $guarded = ['id'];
 
     protected $casts = [

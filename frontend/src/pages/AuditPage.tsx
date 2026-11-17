@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { ShieldCheck, Lock, Link as LinkIcon, CheckCircle2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Lock, Link as LinkIcon, CheckCircle2, RefreshCw } from 'lucide-react';
 
 export const AuditPage: React.FC = () => {
   const [isVerifying, setIsVerifying] = useState(false);
-  const [chainValid, setChainValid] = useState(true);
+  const [_chainValid, setChainValid] = useState(true);
 
   const logs = [
     {

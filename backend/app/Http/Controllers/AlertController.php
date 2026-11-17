@@ -17,8 +17,8 @@ class AlertController extends Controller
     public function index(Request $request)
     {
         $query = Alert::with([
-            'astronaut:id,callsign,first_name,last_name',
-            'mission:id,name,code',
+            'astronaut:id,callsign,full_name',
+            'mission:id,name,mission_code',
             'acknowledgements.user:id,name',
             'escalations.user:id,name',
         ])->orderBy('triggered_at', 'desc');
@@ -161,7 +161,7 @@ class AlertController extends Controller
             'alert_resolved',
             'Alert',
             $alert->id,
-            "Alert [{$alert->alert_code}] marked as resolved. Notes: " . $request->input('resolution_notes', 'Vitals stabilized back to nominal parameters.'),
+            "Alert [{$alert->alert_code}] marked as resolved. Notes: ".$request->input('resolution_notes', 'Vitals stabilized back to nominal parameters.'),
             ['status' => $alert->getOriginal('status')],
             ['status' => 'resolved']
         );
@@ -185,7 +185,7 @@ class AlertController extends Controller
             'alert_dismissed',
             'Alert',
             $alert->id,
-            "Alert [{$alert->alert_code}] dismissed. Reason: " . $request->input('reason', 'Artifact in bio-sensor telemetry.'),
+            "Alert [{$alert->alert_code}] dismissed. Reason: ".$request->input('reason', 'Artifact in bio-sensor telemetry.'),
             ['status' => $alert->getOriginal('status')],
             ['status' => 'dismissed']
         );

@@ -43,7 +43,7 @@ class TelemetryController extends Controller
             ]);
 
             // 2. Insert Vitals Readings in batches (anti-N+1)
-            if (!empty($validated['vitals'])) {
+            if (! empty($validated['vitals'])) {
                 $vitalRows = [];
                 foreach ($validated['vitals'] as $v) {
                     $hr = $v['heart_rate_bpm'] ?? 62;
@@ -69,7 +69,7 @@ class TelemetryController extends Controller
             }
 
             // 3. Insert Organ Telemetry Readings
-            if (!empty($validated['organs'])) {
+            if (! empty($validated['organs'])) {
                 $organRows = [];
                 foreach ($validated['organs'] as $o) {
                     $organRows[] = [

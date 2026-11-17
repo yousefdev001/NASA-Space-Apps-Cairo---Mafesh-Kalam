@@ -10,6 +10,7 @@ class AlertEscalation extends Model
     use HasFactory;
 
     public $timestamps = false;
+
     protected $guarded = ['id'];
 
     protected $casts = [

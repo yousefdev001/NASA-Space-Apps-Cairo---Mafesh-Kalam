@@ -10,6 +10,7 @@ class UserAcademyProgress extends Model
     use HasFactory;
 
     protected $table = 'user_academy_progress';
+
     protected $guarded = ['id'];
 
     protected $casts = [

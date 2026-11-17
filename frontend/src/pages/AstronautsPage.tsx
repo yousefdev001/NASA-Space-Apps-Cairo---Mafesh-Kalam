@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { Users, Search, Filter, ShieldCheck, Heart, Award } from 'lucide-react';
+import { Users, Search, ShieldCheck } from 'lucide-react';
 
 export const AstronautsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');

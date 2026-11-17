@@ -18,8 +18,8 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $query = Report::with([
-            'astronaut:id,callsign,first_name,last_name',
-            'mission:id,name,code',
+            'astronaut:id,callsign,full_name',
+            'mission:id,name,mission_code',
             'author:id,name',
             'approver:id,name',
         ])->orderBy('created_at', 'desc');
@@ -80,7 +80,7 @@ class ReportController extends Controller
             'forensic_events.*.severity' => 'nullable|in:info,low,medium,high,critical',
         ]);
 
-        $reportCode = 'RPT-' . strtoupper(Str::random(5));
+        $reportCode = 'RPT-'.strtoupper(Str::random(5));
 
         $report = Report::create([
             'uuid' => (string) Str::uuid(),
@@ -96,7 +96,7 @@ class ReportController extends Controller
             'summary' => $data['summary'],
         ]);
 
-        if (!empty($data['forensic_events'])) {
+        if (! empty($data['forensic_events'])) {
             foreach ($data['forensic_events'] as $index => $eventData) {
                 ReportForensicEvent::create([
                     'report_id' => $report->id,
