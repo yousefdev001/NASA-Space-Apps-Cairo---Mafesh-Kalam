@@ -16,6 +16,7 @@ import { ReportsPage } from './pages/ReportsPage';
 import { AcademyPage } from './pages/AcademyPage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { AuditPage } from './pages/AuditPage';
+import { BioTwinPage } from './pages/BioTwinPage';
 
 export default function App() {
   const { isAuthenticated } = useAuthStore();
@@ -76,6 +77,14 @@ export default function App() {
             element={
               <ProtectedRoute requiredPermissions={['view_vital_readings']}>
                 <MissionControlPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bio-twin"
+            element={
+              <ProtectedRoute requiredPermissions={['view_vital_readings']}>
+                <BioTwinPage />
               </ProtectedRoute>
             }
           />

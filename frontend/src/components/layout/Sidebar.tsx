@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Sparkles,
   Users,
   Compass,
   Activity,
@@ -58,6 +59,14 @@ export const Sidebar: React.FC = () => {
       label: 'Mission Control',
       icon: LayoutDashboard,
       badge: 'LIVE',
+      permission: 'view_vital_readings',
+    },
+    {
+      to: '/bio-twin',
+      label: 'Bio-Digital Twin',
+      icon: Sparkles,
+      badge: '3D TWIN',
+      badgeColor: 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_10px_rgba(0,229,255,0.25)]',
       permission: 'view_vital_readings',
     },
     {

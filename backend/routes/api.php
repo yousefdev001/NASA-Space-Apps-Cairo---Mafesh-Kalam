@@ -7,6 +7,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AstronautController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\BioTwinController;
 use App\Http\Controllers\MissionControlController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TelemetryController;
@@ -98,6 +99,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{astronautId}/latest', [TelemetryController::class, 'latest'])
             ->middleware('permission:view_vital_readings');
     });
+
+    // Bio-Digital Twin Anatomical Telemetry (12 Body Regions)
+    Route::get('/bio-twin/{astronautId}', [BioTwinController::class, 'show'])
+        ->middleware(['auth:sanctum', 'permission:view_vital_readings']);
 
     // AI Insights HITL Queue & Review Workflow
     Route::prefix('ai-insights')->group(function () {
