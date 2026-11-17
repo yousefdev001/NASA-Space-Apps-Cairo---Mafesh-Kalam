@@ -21,6 +21,8 @@ import { OrganRadarChart } from '../components/charts/OrganRadarChart';
 import { RadiationGauge } from '../components/charts/RadiationGauge';
 import { VitalsStreamChart } from '../components/charts/VitalsStreamChart';
 import { OrganTelemetryGrid } from '../components/telemetry/OrganTelemetryGrid';
+import { SuitTelemetryCard, SuitTelemetryData } from '../components/telemetry/SuitTelemetryCard';
+import { NeuroRiskCard, NeuroRiskData } from '../components/telemetry/NeuroRiskCard';
 import { OrganSystemData } from '../types/telemetry.types';
 import apiClient from '../api/client';
 
@@ -103,6 +105,8 @@ export const MissionControlPage: React.FC = () => {
     humidity_percent: 46.0,
   });
   const [unresolvedAlertsCount, setUnresolvedAlertsCount] = useState<number>(2);
+  const [suitData, setSuitData] = useState<SuitTelemetryData | undefined>(undefined);
+  const [neuroData, setNeuroData] = useState<NeuroRiskData | undefined>(undefined);
   const [lastSyncTime, setLastSyncTime] = useState<string>('SYNCHRONIZED');
   const [metString, setMetString] = useState<string>('042d 14h 22m 00s');
 
@@ -142,6 +146,8 @@ export const MissionControlPage: React.FC = () => {
         if (d.crew && Array.isArray(d.crew)) setCrewMembers(d.crew);
         if (d.cabin_environment) setCabinEnv(d.cabin_environment);
         if (d.radiation) setRadiation(d.radiation);
+        if (d.suit_telemetry) setSuitData(d.suit_telemetry);
+        if (d.neuro_risk) setNeuroData(d.neuro_risk);
         if (typeof d.unresolved_alerts_count === 'number') {
           setUnresolvedAlertsCount(d.unresolved_alerts_count);
         }
@@ -336,6 +342,12 @@ export const MissionControlPage: React.FC = () => {
               height="280px"
             />
           </Card>
+
+          {/* Advanced Aerospace Telemetry: Spacesuit xEMU & Neuro-Cognitive SANS Risk */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SuitTelemetryCard suit={suitData} callsign={selectedCrew?.callsign} />
+            <NeuroRiskCard data={neuroData} callsign={selectedCrew?.callsign} />
+          </div>
         </div>
 
         {/* Right Column (4 cols): Radar, Radiation, Environment, Triage */}
