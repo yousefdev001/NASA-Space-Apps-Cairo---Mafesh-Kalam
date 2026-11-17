@@ -29,7 +29,6 @@ import {
   BioTwinCrewHeader,
   HolographicBodyModel,
   BodyLandmarkPointers,
-  AnatomicalLayersControl,
   OrganDetailDrawer,
 } from '../components/biotwin';
 import bioTwinApi from '../api/bioTwinApi';
@@ -292,7 +291,7 @@ export const BioTwinPage: React.FC = () => {
     crewMembers.find((c) => c.id === selectedCrewId) || crewMembers[0];
 
   return (
-    <div className="min-h-screen bg-[#050B14] text-white p-3 sm:p-6 space-y-5 hud-grid">
+    <div className="min-h-screen bg-[#050B14] text-white p-3 sm:p-4 lg:p-5 space-y-4 pb-16 hud-grid">
       {/* 1. Top Section: Crew Header & Telemetry Sync Ribbon */}
       <BioTwinCrewHeader
         selectedCrewId={selectedCrewId}
@@ -309,94 +308,148 @@ export const BioTwinPage: React.FC = () => {
         isRefreshing={isRefreshing}
       />
 
-      {/* 2. Main Viewport: Center 3D Avatar Viewport + Controls + Sliding Drawer */}
-      <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Holographic Avatar Center Viewport (8 or 12 Cols depending on drawer) */}
+      {/* 2. Main Viewport: Center 3D Avatar Viewport + Sliding Drawer */}
+      <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 items-stretch">
+        {/* Holographic Avatar Center Viewport */}
         <div
-          className={`relative rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-[#0B132B]/95 via-[#050B14]/90 to-[#0B132B]/95 p-4 sm:p-6 backdrop-blur-2xl shadow-[0_0_35px_rgba(0,229,255,0.08)] overflow-hidden transition-all duration-300 ${
-            isDrawerOpen ? 'lg:col-span-8' : 'lg:col-span-12'
+          className={`relative rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-[#0B132B]/95 via-[#050B14]/90 to-[#0B132B]/95 p-3.5 sm:p-4 lg:p-5 backdrop-blur-2xl shadow-[0_0_35px_rgba(0,229,255,0.08)] overflow-hidden transition-all duration-300 flex flex-col justify-between ${
+            isDrawerOpen ? 'lg:col-span-7 xl:col-span-7 2xl:col-span-8' : 'lg:col-span-12'
           }`}
         >
           {/* Subtle Ambient HUD Grid Background */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-500/10 via-transparent to-transparent" />
 
-          {/* Top Floating Controls Bar */}
-          <div className="relative z-20 flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2">
-              <span className="flex h-2.5 w-2.5 rounded-full bg-cyan-400 animate-ping" />
-              <span className="text-xs font-mono font-bold tracking-widest text-cyan-300 uppercase">
-                {perspective.toUpperCase()} PROJECTION · {shaderMode.toUpperCase().replace('_', ' ')}
-              </span>
+          {/* Unified High-Tech HUD Control Bar */}
+          <div className="relative z-20 flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-cyan-500/20 mb-1">
+            {/* Left: 5 Anatomical Layers Pills + All/Isolate */}
+            <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+              <div className="flex items-center gap-1.5 mr-1 text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider hidden sm:flex">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                <span>LAYERS:</span>
+              </div>
+              {[
+                { id: 'neural' as AnatomicalLayer, label: 'Neural', icon: Brain },
+                { id: 'vascular' as AnatomicalLayer, label: 'Vascular', icon: Activity },
+                { id: 'visceral' as AnatomicalLayer, label: 'Visceral', icon: Heart },
+                { id: 'muscular' as AnatomicalLayer, label: 'Muscular', icon: User },
+                { id: 'skeletal' as AnatomicalLayer, label: 'Skeletal', icon: Layers },
+              ].map(({ id, label, icon: IconComponent }) => {
+                const isActive = activeLayers[id];
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => handleToggleLayer(id)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-mono transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-[0_0_8px_rgba(0,229,255,0.2)]'
+                        : 'bg-slate-900/50 border-slate-800 text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    <IconComponent className="h-3 w-3 shrink-0" />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => handleSetAllLayers(!Object.values(activeLayers).every(Boolean))}
+                className="text-[9px] font-mono px-1.5 py-1 rounded border border-cyan-500/30 text-slate-400 hover:text-cyan-300 hover:border-cyan-400 transition-colors cursor-pointer"
+                title={Object.values(activeLayers).every(Boolean) ? 'Isolate Layer' : 'Show All Layers'}
+              >
+                {Object.values(activeLayers).every(Boolean) ? 'ISO' : 'ALL'}
+              </button>
             </div>
 
-            {/* Quick Mode Toggle & Perspective Buttons */}
-            <div className="flex flex-wrap items-center gap-2">
+            {/* Right: Shader Mode, Perspective Flip, HUD Callouts, and Dossier Drawer Toggle */}
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              {/* Shader Mode Pills */}
+              <div className="flex items-center gap-0.5 bg-[#050B14]/80 p-0.5 rounded-lg border border-[#1E3A5F]">
+                <button
+                  type="button"
+                  onClick={() => setShaderMode('holographic')}
+                  title="Cyber Hologram"
+                  className={`p-1 rounded transition-all cursor-pointer ${
+                    shaderMode === 'holographic' ? 'bg-cyan-500/25 text-cyan-300' : 'text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShaderMode('thermal_heatmap')}
+                  title="Thermal Heatmap"
+                  className={`p-1 rounded transition-all cursor-pointer ${
+                    shaderMode === 'thermal_heatmap' ? 'bg-amber-500/25 text-amber-300' : 'text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  <Flame className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShaderMode('radiation_flux')}
+                  title="Radiation Flux"
+                  className={`p-1 rounded transition-all cursor-pointer ${
+                    shaderMode === 'radiation_flux' ? 'bg-fuchsia-500/25 text-fuchsia-300' : 'text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  <Radio className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
               {/* Perspective 180° Flip */}
               <button
                 type="button"
                 onClick={handleTogglePerspective}
-                className="flex items-center gap-1.5 rounded-xl border border-cyan-500/40 bg-cyan-950/40 px-3 py-1.5 text-xs font-mono font-bold text-cyan-300 hover:bg-cyan-500/25 transition-all shadow-[0_0_12px_rgba(0,229,255,0.15)] cursor-pointer"
+                className="flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-cyan-950/40 px-2 py-1 text-[11px] font-mono font-bold text-cyan-300 hover:bg-cyan-500/25 transition-all shadow-[0_0_10px_rgba(0,229,255,0.15)] cursor-pointer"
                 title="Rotate Humanoid Avatar 180°"
               >
-                <RotateCw className="h-3.5 w-3.5" />
-                <span>FLIP VIEW ({perspective === 'anterior' ? 'ANTERIOR' : 'POSTERIOR'})</span>
+                <RotateCw className="h-3 w-3" />
+                <span>{perspective.toUpperCase()}</span>
               </button>
 
               {/* Callout Pins Toggle */}
               <button
                 type="button"
                 onClick={() => setShowCalloutPins(!showCalloutPins)}
-                className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-mono font-bold transition-all cursor-pointer ${
                   showCalloutPins
                     ? 'border-cyan-400 bg-cyan-500/20 text-cyan-300 shadow-[0_0_10px_rgba(0,229,255,0.2)]'
                     : 'border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-white'
                 }`}
+                title="Toggle HUD landmark callouts"
               >
-                <Radio className="h-3.5 w-3.5" />
-                <span>HUD CALLOUTS {showCalloutPins ? 'ON' : 'OFF'}</span>
+                <Radio className="h-3 w-3" />
+                <span>PINS {showCalloutPins ? 'ON' : 'OFF'}</span>
               </button>
 
               {/* Drawer Toggle */}
               <button
                 type="button"
                 onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-                className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-mono font-bold transition-all cursor-pointer ${
                   isDrawerOpen
-                    ? 'border-cyan-400 bg-cyan-500/20 text-cyan-300'
+                    ? 'border-cyan-400 bg-cyan-500/25 text-cyan-300'
                     : 'border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-white'
                 }`}
               >
-                <Stethoscope className="h-3.5 w-3.5" />
+                <Stethoscope className="h-3 w-3" />
                 <span>{isDrawerOpen ? 'HIDE DOSSIER' : 'INSPECT DOSSIER'}</span>
               </button>
             </div>
           </div>
 
-          {/* Anatomical Layers & Shader Mode Floating Toolbar */}
-          <div className="relative z-20 mb-3">
-            <AnatomicalLayersControl
-              activeLayers={activeLayers}
-              onToggleLayer={handleToggleLayer}
-              onSetAllLayers={handleSetAllLayers}
-              perspective={perspective}
-              onTogglePerspective={handleTogglePerspective}
-              shaderMode={shaderMode}
-              onChangeShaderMode={setShaderMode}
-              variant="inline"
-            />
-          </div>
-
           {/* Holographic Body Model Canvas Viewport */}
-          <div className="relative min-h-[640px] sm:min-h-[720px] flex items-center justify-center py-4">
+          <div className="relative flex-1 min-h-[480px] sm:min-h-[540px] max-h-[620px] flex items-center justify-center py-2">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center space-y-4 py-24 text-center">
-                <div className="h-14 w-14 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
-                <p className="text-sm font-mono text-cyan-300 animate-pulse">
+                <div className="h-12 w-12 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
+                <p className="text-xs font-mono text-cyan-300 animate-pulse">
                   Acquiring 500Hz Bio-Impedance Mesh & Holographic Avatar Telemetry...
                 </p>
               </div>
             ) : (
-              <div className="relative w-full max-w-[580px] mx-auto flex items-center justify-center">
+              <div className="relative h-full w-full max-w-[480px] mx-auto flex items-center justify-center aspect-[500/890]">
                 {/* 3D SVG Holographic Humanoid Body Model */}
                 <HolographicBodyModel
                   selectedOrganId={selectedOrganId as OrganId}
@@ -408,7 +461,7 @@ export const BioTwinPage: React.FC = () => {
                   activeLayers={activeLayers}
                   showPointers={false}
                   onHoverOrgan={(id) => setHoveredOrganId(id)}
-                  className="w-full h-auto max-h-[760px] drop-shadow-[0_0_25px_rgba(0,229,255,0.2)]"
+                  className="h-full w-auto max-h-[580px] mx-auto drop-shadow-[0_0_25px_rgba(0,229,255,0.2)]"
                 />
 
                 {/* Cybernetic Leader Lines & Landmark Callout Pins Overlay */}
@@ -427,9 +480,9 @@ export const BioTwinPage: React.FC = () => {
             )}
 
             {/* Corner Metadata HUD Callouts */}
-            <div className="pointer-events-none absolute bottom-4 left-4 z-20 space-y-1 font-mono text-[10px] text-slate-400">
-              <div className="flex items-center gap-1.5 text-cyan-300 font-bold">
-                <Sparkles className="h-3 w-3" />
+            <div className="pointer-events-none absolute bottom-2 left-2 z-20 space-y-0.5 font-mono text-[9px] text-slate-400 hidden sm:block">
+              <div className="flex items-center gap-1 text-cyan-300 font-bold">
+                <Sparkles className="h-2.5 w-2.5" />
                 <span>VECTOR BIO-TWIN RESOLUTION: 500 DPI</span>
               </div>
               <div>SPACE-STD: NASA STD-3001 VOL 1 & 2</div>
@@ -439,7 +492,7 @@ export const BioTwinPage: React.FC = () => {
               )}
             </div>
 
-            <div className="pointer-events-none absolute bottom-4 right-4 z-20 text-right font-mono text-[10px] text-slate-400">
+            <div className="pointer-events-none absolute bottom-2 right-2 z-20 text-right font-mono text-[9px] text-slate-400 hidden sm:block">
               <div className="text-emerald-400 font-bold">● BIO-DOWNLINK NOMINAL</div>
               <div>LATENCY: 42 ms · ORBIT NO. 14,892</div>
               <div>ASTRONAUT: {selectedAstronaut.callsign} ({selectedAstronaut.name})</div>
@@ -448,15 +501,19 @@ export const BioTwinPage: React.FC = () => {
         </div>
 
         {/* 3. Right: Slide-out / Expandable Clinical Inspection Drawer */}
-        <OrganDetailDrawer
-          organ={activeOrgan}
-          astronautId={selectedCrewId}
-          astronautName={selectedAstronaut.name}
-          astronautCallsign={selectedAstronaut.callsign}
-          isOpen={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
-          onSelectOrgan={(id) => handleSelectOrgan(id)}
-        />
+        {isDrawerOpen && (
+          <div className="lg:col-span-5 xl:col-span-5 2xl:col-span-4 h-full">
+            <OrganDetailDrawer
+              organ={activeOrgan}
+              astronautId={selectedCrewId}
+              astronautName={selectedAstronaut.name}
+              astronautCallsign={selectedAstronaut.callsign}
+              isOpen={isDrawerOpen}
+              onClose={() => setIsDrawerOpen(false)}
+              onSelectOrgan={(id) => handleSelectOrgan(id)}
+            />
+          </div>
+        )}
       </div>
 
       {/* 4. Bottom HUD Ribbon: Quick Organ Selector Chips Strip */}

@@ -124,54 +124,62 @@ export const OrganDetailDrawer: React.FC<OrganDetailDrawerProps> = ({
   const statusStyle = getStatusStyle(organ?.status || 'nominal');
 
   return (
-    <aside
-      className={`fixed top-0 right-0 bottom-0 z-50 flex flex-col border-l border-cyan-500/30 bg-[#070D1E]/95 backdrop-blur-2xl transition-all duration-300 shadow-[-10px_0_35px_rgba(0,0,0,0.7)] ${
-        isExpanded ? 'w-full md:w-[680px]' : 'w-full md:w-[480px]'
-      }`}
-    >
-      {/* Drawer Header */}
-      <div className="relative border-b border-[#1E3A5F] p-4 sm:p-5 bg-[#0B132B]/80 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/40 bg-cyan-950/40 text-cyan-300 shadow-[0_0_12px_rgba(0,229,255,0.25)]">
-            <Stethoscope className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-cyan-400 uppercase">
-                CLINICAL INSPECTION DOSSIER
-              </span>
-              <span className="rounded bg-slate-800 px-1.5 py-0.2 text-[9px] font-mono text-slate-300 border border-slate-700">
-                {astronautCallsign}
-              </span>
+    <>
+      {/* Mobile Backdrop Overlay (only on mobile screens < lg) */}
+      <div
+        className="fixed inset-0 bg-[#050B14]/80 backdrop-blur-sm z-40 lg:hidden animate-in fade-in"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      <aside
+        className={`flex flex-col border border-cyan-500/30 bg-gradient-to-b from-[#0B132B]/95 via-[#070D1E]/95 to-[#0B132B]/95 backdrop-blur-2xl transition-all duration-300 shadow-[0_0_35px_rgba(0,229,255,0.08)] rounded-3xl overflow-hidden
+          fixed top-0 right-0 bottom-0 z-50 w-full sm:max-w-md
+          lg:relative lg:top-auto lg:right-auto lg:bottom-auto lg:z-auto lg:w-full lg:max-w-none lg:h-full lg:min-h-[580px] lg:max-h-[680px]`}
+      >
+        {/* Drawer Header */}
+        <div className="relative border-b border-[#1E3A5F] p-3.5 sm:p-4 bg-[#0B132B]/80 flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-400/40 bg-cyan-950/40 text-cyan-300 shadow-[0_0_12px_rgba(0,229,255,0.25)]">
+              <Stethoscope className="h-4.5 w-4.5" />
             </div>
-            <h2 className="text-base sm:text-lg font-mono font-black text-white truncate max-w-[280px] sm:max-w-[340px]">
-              {organ ? organ.name : 'Select Anatomical Target'}
-            </h2>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-mono font-bold tracking-widest text-cyan-400 uppercase">
+                  CLINICAL INSPECTION DOSSIER
+                </span>
+                <span className="rounded bg-slate-800 px-1.5 py-0.2 text-[9px] font-mono text-slate-300 border border-slate-700">
+                  {astronautCallsign}
+                </span>
+              </div>
+              <h2 className="text-sm sm:text-base font-mono font-black text-white truncate max-w-[240px] sm:max-w-[300px]">
+                {organ ? organ.name : 'Select Anatomical Target'}
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="hidden sm:flex h-7 w-7 items-center justify-center rounded-lg border border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-cyan-300 hover:border-cyan-500/40 transition-colors"
+              title={isExpanded ? 'Collapse Drawer' : 'Expand Drawer'}
+            >
+              {isExpanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-white hover:border-red-500/50 hover:bg-red-500/10 transition-colors cursor-pointer"
+              title="Close Drawer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg border border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-cyan-300 hover:border-cyan-500/40 transition-colors"
-            title={isExpanded ? 'Collapse Drawer' : 'Expand Drawer'}
-          >
-            {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-white hover:border-red-500/50 hover:bg-red-500/10 transition-colors cursor-pointer"
-            title="Close Drawer"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Drawer Body Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 custom-hud-scrollbar">
+        {/* Drawer Body Scroll Area */}
+        <div className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-4 custom-hud-scrollbar">
         {!organ ? (
           <div className="flex flex-col items-center justify-center py-20 text-center text-slate-400 space-y-3">
             <Info className="h-10 w-10 text-cyan-400/60 animate-pulse" />
@@ -608,7 +616,7 @@ export const OrganDetailDrawer: React.FC<OrganDetailDrawerProps> = ({
       </div>
 
       {/* Drawer Footer Actions */}
-      <div className="border-t border-[#1E3A5F] p-4 bg-[#0B132B]/90 flex items-center justify-between gap-3 text-xs font-mono">
+      <div className="border-t border-[#1E3A5F] p-3 sm:p-3.5 bg-[#0B132B]/90 flex items-center justify-between gap-3 text-xs font-mono shrink-0">
         <div className="flex items-center gap-2 text-slate-400">
           <Activity className="h-4 w-4 text-cyan-400" />
           <span>AuraMed Bio-Twin Core v3.2</span>
@@ -623,7 +631,8 @@ export const OrganDetailDrawer: React.FC<OrganDetailDrawerProps> = ({
         </button>
       </div>
     </aside>
-  );
+  </>
+);
 };
 
 export default OrganDetailDrawer;

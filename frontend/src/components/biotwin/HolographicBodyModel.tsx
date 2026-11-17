@@ -310,7 +310,8 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
       {/* Main Vector Canvas */}
       <svg
         viewBox="0 0 500 890"
-        className="w-full max-w-[480px] h-auto drop-shadow-2xl overflow-visible"
+        className="h-full w-auto max-h-[580px] max-w-full drop-shadow-2xl overflow-visible mx-auto block"
+        preserveAspectRatio="xMidYMid meet"
         style={{
           filter: shaderMode === 'holographic' ? 'drop-shadow(0 0 18px rgba(0, 229, 255, 0.25))' : undefined,
         }}
