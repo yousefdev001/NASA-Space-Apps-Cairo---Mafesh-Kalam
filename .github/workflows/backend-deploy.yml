@@ -2,31 +2,64 @@ name: Backend Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [main, Web-System]
     paths: ['backend/**']
 
 jobs:
   deploy:
-    name: Production Deploy (Zero Downtime)
+    name: Deploy Laravel Backend to Hostinger (api-auramed.ro2ya-tech.com)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Deploy to Server via SSH
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, mbstring, openssl, gd, pdo_mysql, curl
+          coverage: none
+
+      - name: Install Composer Dependencies
+        working-directory: backend
+        run: |
+          composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Deploy to Hostinger via SSH / SCP
+        if: "${{ secrets.HOSTINGER_SSH_KEY != '' || secrets.HOSTINGER_PASSWORD != '' }}"
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.HOSTINGER_HOST || 'srv1386.hstgr.io' }}
+          port: ${{ secrets.HOSTINGER_PORT || 65002 }}
+          username: ${{ secrets.HOSTINGER_USERNAME || 'u128974225' }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          source: 'backend/*'
+          target: '/home/u128974225/domains/ro2ya-tech.com/public_html/api-auramed'
+          strip_components: 1
+          overwrite: true
+
+      - name: Post-Deploy Tasks via SSH
+        if: "${{ secrets.HOSTINGER_SSH_KEY != '' || secrets.HOSTINGER_PASSWORD != '' }}"
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
+          host: ${{ secrets.HOSTINGER_HOST || 'srv1386.hstgr.io' }}
+          port: ${{ secrets.HOSTINGER_PORT || 65002 }}
+          username: ${{ secrets.HOSTINGER_USERNAME || 'u128974225' }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
           script: |
-            cd /var/www/auramed/backend
-            git pull origin main
-            composer install --no-dev --optimize-autoloader --no-interaction
+            cd /home/u128974225/domains/ro2ya-tech.com/public_html/api-auramed
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            php artisan migrate --force
-            php artisan queue:restart
-            echo "AuraMed Backend Deployed Successfully"
+            php artisan migrate --force || true
+
+      - name: Clear Hostinger Cache
+        if: "${{ secrets.HOSTINGER_API_TOKEN != '' }}"
+        run: |
+          curl -s -X POST "https://developers.hostinger.com/api/hosting/v1/accounts/u128974225/domains/api-auramed.ro2ya-tech.com/cache/clear" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"scope":"all"}' || true

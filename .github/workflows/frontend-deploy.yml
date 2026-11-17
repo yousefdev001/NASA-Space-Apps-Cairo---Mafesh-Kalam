@@ -2,45 +2,62 @@ name: Frontend Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [main, Web-System]
     paths: ['frontend/**']
 
 jobs:
   deploy:
-    name: Build & Deploy Static Dist
+    name: Build & Deploy to Hostinger (auramed.ro2ya-tech.com)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Install and Build
+      - name: Install and Build Production Assets
         working-directory: frontend
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api-auramed.ro2ya-tech.com/api' }}
         run: |
           npm ci
           npm run build
 
-      - name: Upload to Server via SCP
+      - name: Deploy to Hostinger via SSH / SCP
+        if: "${{ secrets.HOSTINGER_SSH_KEY != '' || secrets.HOSTINGER_PASSWORD != '' }}"
         uses: appleboy/scp-action@v1
         with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
+          host: ${{ secrets.HOSTINGER_HOST || 'srv1386.hstgr.io' }}
+          port: ${{ secrets.HOSTINGER_PORT || 65002 }}
+          username: ${{ secrets.HOSTINGER_USERNAME || 'u128974225' }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
           source: 'frontend/dist/*'
-          target: '/var/www/auramed/frontend'
+          target: '/home/u128974225/domains/ro2ya-tech.com/public_html/auramed'
           strip_components: 2
+          overwrite: true
 
-      - name: Reload Nginx
-        uses: appleboy/ssh-action@v1
+      - name: Deploy to Hostinger via FTP (Alternative)
+        if: "${{ secrets.HOSTINGER_SSH_KEY == '' && secrets.HOSTINGER_PASSWORD == '' && secrets.HOSTINGER_FTP_PASSWORD != '' }}"
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
-          script: sudo systemctl reload nginx
+          server: ${{ secrets.HOSTINGER_FTP_HOST || 'srv1386.hstgr.io' }}
+          username: ${{ secrets.HOSTINGER_FTP_USER || 'u128974225' }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          local-dir: frontend/dist/
+          server-dir: domains/ro2ya-tech.com/public_html/auramed/
+          dangerous-clean-slate: false
+
+      - name: Clear Hostinger Cache
+        if: "${{ secrets.HOSTINGER_API_TOKEN != '' }}"
+        run: |
+          curl -s -X POST "https://developers.hostinger.com/api/hosting/v1/accounts/u128974225/domains/auramed.ro2ya-tech.com/cache/clear" \
+            -H "Authorization: Bearer ${{ secrets.HOSTINGER_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"scope":"all"}' || true

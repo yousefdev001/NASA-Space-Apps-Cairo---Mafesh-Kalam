@@ -1,6 +1,10 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname.includes('ro2ya-tech.com')
+    ? 'https://api-auramed.ro2ya-tech.com/api'
+    : 'http://localhost:8001/api');
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
