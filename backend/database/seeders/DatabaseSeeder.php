@@ -94,10 +94,16 @@ class DatabaseSeeder extends Seeder
             $user->syncRoles([$userData['role']]);
         }
 
-        // 5. Seed Complete AuraMed Domain (AI Insights, Alerts, Reports, Academy, Articles, Audit)
+        // 5. Seed Crew Telemetry and Downlink Streams
+        $this->call(CrewTelemetrySeeder::class);
+
+        // 6. Seed Complete AuraMed Domain (AI Insights, Alerts, Reports, Academy, Articles, Audit)
         $this->call(AuraMedFullSeeder::class);
 
-        // 6. Enrich Space Academy Curricula, Mini-Games, Badges & Leaderboard
+        // 7. Seed Educational Space Articles
+        $this->call(EducationalArticlesSeeder::class);
+
+        // 8. Enrich Space Academy Curricula, Mini-Games, Badges & Leaderboard
         $this->call(AcademyCurriculumSeeder::class);
     }
 }
