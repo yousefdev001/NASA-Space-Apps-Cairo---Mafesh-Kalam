@@ -25,7 +25,8 @@ class ReportController extends Controller
         ])->orderBy('created_at', 'desc');
 
         if ($request->has('report_type')) {
-            $query->where('report_type', $request->query('report_type'));
+            $type = $request->query('report_type');
+            $query->where('report_type', $type);
         }
 
         if ($request->has('status')) {
@@ -54,17 +55,34 @@ class ReportController extends Controller
             'forensicEvents',
         ])->findOrFail($id);
 
+        $dossierHash = hash('sha256', $report->uuid.'|'.$report->created_at.'|'.$report->report_code);
+        $prevHash = $dossierHash;
+        $report->forensicEvents->each(function ($event) use (&$prevHash) {
+            $eventHash = hash('sha256', implode('|', [
+                $prevHash,
+                $event->id,
+                $event->event_time,
+                $event->event_type,
+                $event->title,
+                $event->related_metric ?? '',
+                $event->metric_value ?? '',
+                $event->severity ?? 'info',
+            ]));
+            $prevHash = $eventHash;
+            $event->setAttribute('sha256_hash', $eventHash);
+        });
+
         return ApiResponse::success($report, 'Report details retrieved.');
     }
 
     /**
-     * Create a new formal report (RPT-01 to RPT-09).
+     * Create a new formal report (RPT-01 to RPT-09, clinical and operational).
      */
     public function store(Request $request)
     {
         $data = $request->validate([
             'title' => 'required|string|max:255',
-            'report_type' => 'required|in:crew_health_summary,equipment_performance,mission_analysis,forensic_timeline,ai_validation,alert_summary,medication_log,eva_debrief,post_mission',
+            'report_type' => 'required|string|in:crew_health_summary,equipment_performance,mission_analysis,forensic_timeline,ai_validation,alert_summary,medication_log,eva_debrief,post_mission,post-eva,post_eva,decompression,solar particle event,solar_particle_event,daily telemetry,daily_telemetry',
             'astronaut_id' => 'nullable|exists:astronauts,id',
             'mission_id' => 'nullable|exists:missions,id',
             'period_start' => 'nullable|date',
@@ -177,9 +195,24 @@ class ReportController extends Controller
 
         $callback = function () use ($report) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['ID', 'Event Time', 'Event Type', 'Title', 'Description', 'Metric', 'Value', 'Severity']);
+            fputcsv($handle, ['ID', 'Event Time', 'Event Type', 'Title', 'Description', 'Metric', 'Value', 'Severity', 'SHA-256 Hash']);
+
+            $dossierHash = hash('sha256', $report->uuid.'|'.$report->created_at.'|'.$report->report_code);
+            $prevHash = $dossierHash;
 
             foreach ($report->forensicEvents as $event) {
+                $eventHash = hash('sha256', implode('|', [
+                    $prevHash,
+                    $event->id,
+                    $event->event_time,
+                    $event->event_type,
+                    $event->title,
+                    $event->related_metric ?? '',
+                    $event->metric_value ?? '',
+                    $event->severity ?? 'info',
+                ]));
+                $prevHash = $eventHash;
+
                 fputcsv($handle, [
                     $event->id,
                     $event->event_time,
@@ -189,6 +222,7 @@ class ReportController extends Controller
                     $event->related_metric,
                     $event->metric_value,
                     $event->severity,
+                    $eventHash,
                 ]);
             }
 
@@ -205,11 +239,46 @@ class ReportController extends Controller
     {
         $report = Report::with('forensicEvents')->findOrFail($id);
 
+        // Compute immutable cryptographic hash for this report dossier
+        $dossierHash = hash('sha256', $report->uuid.'|'.$report->created_at.'|'.$report->report_code);
+
+        // Retrieve linked audit log chain for non-repudiation
+        $auditLogs = AuditLog::where('auditable_type', 'Report')
+            ->where('auditable_id', $report->id)
+            ->orderBy('id', 'asc')
+            ->get(['id', 'event_type', 'previous_hash', 'current_hash', 'created_at']);
+
+        // Attach deterministic SHA-256 hash to each forensic event in the sequence
+        $previousEventHash = $dossierHash;
+        $eventsWithHashes = $report->forensicEvents->map(function ($event) use (&$previousEventHash) {
+            $eventHash = hash('sha256', implode('|', [
+                $previousEventHash,
+                $event->id,
+                $event->event_time,
+                $event->event_type,
+                $event->title,
+                $event->related_metric ?? '',
+                $event->metric_value ?? '',
+                $event->severity ?? 'info',
+            ]));
+            $previousEventHash = $eventHash;
+
+            $eventArray = $event->toArray();
+            $eventArray['sha256_hash'] = $eventHash;
+
+            return $eventArray;
+        });
+
         return ApiResponse::success([
+            'report_id' => $report->id,
             'report_code' => $report->report_code,
+            'title' => $report->title,
             'period_start' => $report->period_start,
             'period_end' => $report->period_end,
-            'events' => $report->forensicEvents,
+            'status' => $report->status,
+            'dossier_hash' => $dossierHash,
+            'audit_chain' => $auditLogs,
+            'events' => $eventsWithHashes,
         ], 'Forensic timeline events retrieved.');
     }
 }

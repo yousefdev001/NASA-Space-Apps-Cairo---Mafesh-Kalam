@@ -7,7 +7,11 @@ export type ReportType =
   | 'alert_summary'
   | 'medication_log'
   | 'eva_debrief'
-  | 'post_mission';
+  | 'post_mission'
+  | 'post-eva'
+  | 'decompression'
+  | 'solar particle event'
+  | 'daily telemetry';
 
 export type ReportStatus = 'approved' | 'pending_review' | 'rejected';
 
@@ -23,6 +27,7 @@ export interface ReportForensicEvent {
   severity: 'info' | 'low' | 'medium' | 'high' | 'critical';
   sort_order?: number;
   created_at?: string;
+  sha256_hash?: string;
 }
 
 export interface Report {
@@ -87,9 +92,20 @@ export interface CreateReportPayload {
 }
 
 export interface ForensicTimelineResponse {
+  report_id?: number;
   report_code: string;
+  title?: string;
   period_start: string;
   period_end: string;
+  status?: string;
+  dossier_hash?: string;
+  audit_chain?: Array<{
+    id: number;
+    event_type: string;
+    previous_hash: string;
+    current_hash: string;
+    created_at: string;
+  }>;
   events: ReportForensicEvent[];
 }
 
@@ -141,5 +157,25 @@ export const REPORT_TYPE_CONFIG: Record<
     code: 'RPT-09',
     label: 'Post-Mission Longitudinal Health',
     description: 'Long-term physiological adaptation, neuro-vestibular recovery, and bone density',
+  },
+  'post-eva': {
+    code: 'RPT-08',
+    label: 'Post-EVA Sortie Debrief',
+    description: 'Extravehicular excursion physiological debrief, suit telemetry & venous bubble doppler',
+  },
+  decompression: {
+    code: 'RPT-02',
+    label: 'Decompression Sickness Protocol',
+    description: 'Hypobaric exposure, hyperbaric repress, pulmonary barotrauma and inert gas washout analysis',
+  },
+  'solar particle event': {
+    code: 'RPT-04',
+    label: 'Solar Particle Event (SPE) Dossier',
+    description: 'Coronal mass ejection dosimeter spikes, acute radiation triage and cellular kinetics correlation',
+  },
+  'daily telemetry': {
+    code: 'RPT-01',
+    label: 'Daily Telemetry & Vitals Assessment',
+    description: 'Circadian physiological monitoring, real-time hemodynamic indices and autonomic stability report',
   },
 };

@@ -78,8 +78,11 @@ class MissionControlController extends Controller
                 'organ_telemetry_readings.status'
             )
             ->where('organ_telemetry_readings.astronaut_id', $targetAstronautId)
-            ->orderBy('organ_systems.id', 'asc')
-            ->get();
+            ->orderBy('organ_telemetry_readings.measured_at', 'desc')
+            ->get()
+            ->unique('organ_system_id')
+            ->sortBy('organ_system_id')
+            ->values();
 
         // Fallback to organ catalog if no readings exist for this astronaut
         if ($latestOrganReadings->isEmpty()) {

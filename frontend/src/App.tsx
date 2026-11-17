@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { PublicLayout, MissionControlLayout } from './components/layout/Layouts';
 import { ProtectedRoute } from './components/guards/ProtectedRoute';
 import { ShieldAlert, GraduationCap, LayoutDashboard } from 'lucide-react';
+import { useAuthStore } from './store/authStore';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
@@ -17,6 +18,8 @@ import { ArticlesPage } from './pages/ArticlesPage';
 import { AuditPage } from './pages/AuditPage';
 
 export default function App() {
+  const { isAuthenticated } = useAuthStore();
+
   return (
     <BrowserRouter>
       <Routes>
@@ -24,7 +27,7 @@ export default function App() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/articles" element={<ArticlesPage />} />
-          <Route path="/academy" element={<AcademyPage />} />
+          {!isAuthenticated && <Route path="/academy" element={<AcademyPage />} />}
           <Route path="/login" element={<LoginPage />} />
           <Route
             path="/unauthorized"

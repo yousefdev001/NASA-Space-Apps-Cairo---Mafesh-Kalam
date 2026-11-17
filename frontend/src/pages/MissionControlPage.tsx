@@ -148,19 +148,25 @@ export const MissionControlPage: React.FC = () => {
 
         // Format organs data
         if (d.organs && Array.isArray(d.organs)) {
-          const formattedOrgans: OrganSystemData[] = d.organs.map((o: any) => {
+          const seen = new Set<string>();
+          const formattedOrgans: OrganSystemData[] = [];
+          for (const o of d.organs) {
             const slug = (o.slug || '').toLowerCase();
-            const IconComponent = ICON_MAP[slug] || Heart;
-            return {
-              id: slug || `organ-${o.name.toLowerCase()}`,
-              name: o.name,
-              system: o.category || 'Organ System',
-              score: Math.round(Number(o.score) || 90),
-              status: (o.status as any) || 'nominal',
-              metricValue: o.metric_value || `${o.score}%`,
-              icon: IconComponent,
-            };
-          });
+            const organId = slug || `organ-${(o.name || '').toLowerCase()}`;
+            if (!seen.has(organId)) {
+              seen.add(organId);
+              const IconComponent = ICON_MAP[slug] || Heart;
+              formattedOrgans.push({
+                id: organId,
+                name: o.name,
+                system: o.category || 'Organ System',
+                score: Math.round(Number(o.score) || 90),
+                status: (o.status as any) || 'nominal',
+                metricValue: o.metric_value || `${o.score}%`,
+                icon: IconComponent,
+              });
+            }
+          }
           setOrgans(formattedOrgans);
         }
 
@@ -328,7 +334,7 @@ export const MissionControlPage: React.FC = () => {
             title={`PHYSIOLOGICAL 6-ORGAN BIO-SCAN · ${selectedCrew?.callsign || 'CDR-01'}`}
             subtitle={`Direct offline sync from crew spacesuit bio-sensor nodes · Total EVA: ${selectedCrew?.eva_hours || 0} Hours`}
           >
-            <OrganTelemetryGrid organs={organs.length === 6 ? organs : undefined} />
+            <OrganTelemetryGrid organs={organs.length > 0 ? organs : undefined} />
           </Card>
         </div>
 

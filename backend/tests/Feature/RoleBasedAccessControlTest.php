@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class RoleBasedAccessControlTest extends TestCase
@@ -14,6 +15,7 @@ class RoleBasedAccessControlTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
         $this->seed();
     }
 
@@ -184,5 +186,185 @@ class RoleBasedAccessControlTest extends TestCase
 
         $this->getJson('/api/academy/badges')->assertStatus(200);
         $this->getJson('/api/academy/my-progress')->assertStatus(200);
+    }
+
+    /**
+     * Exhaustive verification of all 10 roles against all 9 mission endpoints.
+     * Authenticates each role via /api/auth/login to obtain its actual Sanctum bearer token,
+     * then validates that authorized roles receive HTTP 200 and unauthorized roles strictly receive HTTP 403.
+     */
+    public function test_exhaustive_matrix_all_ten_roles_against_all_nine_endpoints(): void
+    {
+        $matrix = [
+            'flight_surgeon@auramed.nasa.gov' => [
+                '/api/mission-control' => 200,
+                '/api/astronauts' => 200,
+                '/api/missions' => 200,
+                '/api/ai-insights' => 200,
+                '/api/alerts' => 200,
+                '/api/reports' => 200,
+                '/api/academy/courses' => 200,
+                '/api/audit-logs' => 403,
+                '/api/audit-logs/verify' => 403,
+            ],
+            'mission_director@auramed.nasa.gov' => [
+                '/api/mission-control' => 200,
+                '/api/astronauts' => 200,
+                '/api/missions' => 200,
+                '/api/ai-insights' => 200,
+                '/api/alerts' => 200,
+                '/api/reports' => 200,
+                '/api/academy/courses' => 200,
+                '/api/audit-logs' => 403,
+                '/api/audit-logs/verify' => 403,
+            ],
+            'medical_officer@auramed.nasa.gov' => [
+                '/api/mission-control' => 200,
+                '/api/astronauts' => 200,
+                '/api/missions' => 403,
+                '/api/ai-insights' => 200,
+                '/api/alerts' => 200,
+                '/api/reports' => 200,
+                '/api/academy/courses' => 200,
+                '/api/audit-logs' => 403,
+                '/api/audit-logs/verify' => 403,
+            ],
+            'biomedical_engineer@auramed.nasa.gov' => [
+                '/api/mission-control' => 200,
+                '/api/astronauts' => 200,
+                '/api/missions' => 403,
+                '/api/ai-insights' => 403,
+                '/api/alerts' => 200,
+                '/api/reports' => 200,
+                '/api/academy/courses' => 200,
+                '/api/audit-logs' => 403,
+                '/api/audit-logs/verify' => 403,
+            ],
+            'astronaut_crew@auramed.nasa.gov' => [
+                '/api/mission-control' => 403,
+                '/api/astronauts' => 403,
+                '/api/missions' => 200,
+                '/api/ai-insights' => 403,
+                '/api/alerts' => 403,
+                '/api/reports' => 403,
+                '/api/academy/courses' => 200,
+                '/api/audit-logs' => 403,
+                '/api/audit-logs/verify' => 403,
+            ],
+            'ground_controller@auramed.nasa.gov' => [
+                '/api/mission-control' => 200,
+                '/api/astronauts' => 200,
+                '/api/missions' => 200,
+                '/api/ai-insights' => 403,
+                '/api/alerts' => 200,
+                '/api/reports' => 403,
+                '/api/academy/courses' => 200,
+                '/api/audit-logs' => 403,
+                '/api/audit-logs/verify' => 403,
+            ],
+            'cadet_student@auramed.nasa.gov' => [
+                '/api/mission-control' => 403,
+                '/api/astronauts' => 403,
+                '/api/missions' => 403,
+                '/api/ai-insights' => 403,
+                '/api/alerts' => 403,
+                '/api/reports' => 403,
+                '/api/academy/courses' => 200,
+                '/api/audit-logs' => 403,
+                '/api/audit-logs/verify' => 403,
+            ],
+            'educator_content_creator@auramed.nasa.gov' => [
+                '/api/mission-control' => 403,
+                '/api/astronauts' => 403,
+                '/api/missions' => 403,
+                '/api/ai-insights' => 403,
+                '/api/alerts' => 403,
+                '/api/reports' => 403,
+                '/api/academy/courses' => 200,
+                '/api/audit-logs' => 403,
+                '/api/audit-logs/verify' => 403,
+            ],
+            'auditor_compliance@auramed.nasa.gov' => [
+                '/api/mission-control' => 200,
+                '/api/astronauts' => 200,
+                '/api/missions' => 200,
+                '/api/ai-insights' => 403,
+                '/api/alerts' => 403,
+                '/api/reports' => 200,
+                '/api/academy/courses' => 200,
+                '/api/audit-logs' => 200,
+                '/api/audit-logs/verify' => 200,
+            ],
+            'system_administrator@auramed.nasa.gov' => [
+                '/api/mission-control' => 200,
+                '/api/astronauts' => 200,
+                '/api/missions' => 200,
+                '/api/ai-insights' => 200,
+                '/api/alerts' => 200,
+                '/api/reports' => 200,
+                '/api/academy/courses' => 200,
+                '/api/audit-logs' => 200,
+                '/api/audit-logs/verify' => 200,
+            ],
+        ];
+
+        foreach ($matrix as $email => $endpoints) {
+            $this->app['auth']->forgetGuards();
+
+            $loginRes = $this->postJson('/api/auth/login', [
+                'email' => $email,
+                'password' => 'Houston@2026!',
+            ]);
+            $loginRes->assertStatus(200);
+            $token = $loginRes->json('data.token');
+            $this->assertNotEmpty($token, "User {$email} must obtain a Sanctum Bearer token.");
+
+            foreach ($endpoints as $endpoint => $expectedStatus) {
+                $this->app['auth']->forgetGuards();
+
+                $response = $this->withHeader('Authorization', "Bearer {$token}")
+                    ->getJson($endpoint);
+
+                $this->assertEquals(
+                    $expectedStatus,
+                    $response->status(),
+                    "Mismatch for role [{$email}] on [{$endpoint}]: expected HTTP {$expectedStatus}, got {$response->status()}"
+                );
+
+                if ($expectedStatus === 200) {
+                    $response->assertJsonPath('success', true);
+                } elseif ($expectedStatus === 403) {
+                    $response->assertJsonPath('success', false);
+                }
+            }
+        }
+    }
+
+    /**
+     * Unauthenticated requests to protected endpoints must strictly return HTTP 401.
+     */
+    public function test_unauthenticated_requests_receive_401_on_protected_endpoints(): void
+    {
+        $this->app['auth']->forgetGuards();
+
+        $protectedEndpoints = [
+            '/api/mission-control',
+            '/api/astronauts',
+            '/api/missions',
+            '/api/ai-insights',
+            '/api/alerts',
+            '/api/reports',
+            '/api/audit-logs',
+            '/api/audit-logs/verify',
+        ];
+
+        foreach ($protectedEndpoints as $endpoint) {
+            $response = $this->getJson($endpoint);
+            $response->assertStatus(401);
+            $response->assertJsonPath('success', false);
+        }
+
+        // Public endpoint allows access without token
+        $this->getJson('/api/academy/courses')->assertStatus(200);
     }
 }

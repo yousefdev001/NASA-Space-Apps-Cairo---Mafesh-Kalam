@@ -107,7 +107,7 @@ export const Sidebar: React.FC = () => {
     },
     {
       to: '/audit',
-      label: 'Audit & Hash Chain',
+      label: 'Audit Trail',
       icon: ShieldCheck,
       permission: 'view_audit_logs',
       roles: ['system_administrator', 'auditor_compliance'],

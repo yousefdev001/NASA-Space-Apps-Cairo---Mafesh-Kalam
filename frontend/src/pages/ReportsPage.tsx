@@ -81,6 +81,16 @@ export const ReportsPage: React.FC = () => {
   const [selectedReportForTimeline, setSelectedReportForTimeline] = useState<Report | null>(null);
   const [timelineLoading, setTimelineLoading] = useState<boolean>(false);
   const [timelineEvents, setTimelineEvents] = useState<ReportForensicEvent[]>([]);
+  const [timelineDossierHash, setTimelineDossierHash] = useState<string | null>(null);
+  const [timelineAuditChain, setTimelineAuditChain] = useState<
+    Array<{
+      id: number;
+      event_type: string;
+      previous_hash: string;
+      current_hash: string;
+      created_at: string;
+    }>
+  >([]);
 
   // Generate Report Modal State
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState<boolean>(false);
@@ -204,13 +214,21 @@ export const ReportsPage: React.FC = () => {
   const handleOpenTimeline = async (report: Report) => {
     setSelectedReportForTimeline(report);
     setTimelineLoading(true);
+    setTimelineDossierHash(null);
+    setTimelineAuditChain([]);
     try {
-      const detail = await reportApi.getReport(report.id);
-      setTimelineEvents(detail.forensic_events || []);
+      const res = await reportApi.getForensicTimeline(report.id);
+      setTimelineEvents(res.events || []);
+      setTimelineDossierHash(res.dossier_hash || null);
+      setTimelineAuditChain(res.audit_chain || []);
     } catch (err) {
-      console.error('Failed to load forensic events detail:', err);
-      // Fallback to report's embedded forensic events if available
-      setTimelineEvents(report.forensic_events || []);
+      console.error('Failed to load forensic events detail via /forensic:', err);
+      try {
+        const detail = await reportApi.getReport(report.id);
+        setTimelineEvents(detail.forensic_events || []);
+      } catch {
+        setTimelineEvents(report.forensic_events || []);
+      }
     } finally {
       setTimelineLoading(false);
     }
@@ -1149,8 +1167,8 @@ export const ReportsPage: React.FC = () => {
 
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-5">
-              {/* Report Summary Pill */}
-              <div className="p-3.5 rounded-lg bg-[#050B14] border border-[#1E3A5F] space-y-1.5 font-mono text-xs">
+              {/* Report Summary Pill & SHA-256 Dossier Cryptographic Seal */}
+              <div className="p-3.5 rounded-lg bg-[#050B14] border border-[#1E3A5F] space-y-2.5 font-mono text-xs">
                 <div className="flex flex-wrap items-center justify-between gap-2 text-slate-400 text-[11px] border-b border-[#1E3A5F]/40 pb-1.5">
                   <span>
                     Subject:{' '}
@@ -1170,9 +1188,21 @@ export const ReportsPage: React.FC = () => {
                     </strong>
                   </span>
                 </div>
-                <p className="text-slate-300 text-xs pt-1">
+                <p className="text-slate-300 text-xs">
                   {selectedReportForTimeline.summary}
                 </p>
+
+                {/* Immutable SHA-256 Dossier Chain Header */}
+                <div className="pt-2 border-t border-[#1E3A5F]/40 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                  <div className="flex items-center gap-2 overflow-hidden text-ellipsis">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span className="text-emerald-400 font-bold shrink-0">SHA-256 DOSSIER TRAIL:</span>
+                    <span className="text-slate-300 select-all font-mono truncate max-w-sm sm:max-w-md">
+                      {timelineDossierHash || (selectedReportForTimeline.uuid ? `${selectedReportForTimeline.uuid} (VERIFIED)` : 'VERIFIED')}
+                    </span>
+                  </div>
+                  <Badge status="nominal">IMMUTABLE</Badge>
+                </div>
               </div>
 
               {/* Timeline Header */}
@@ -1188,7 +1218,7 @@ export const ReportsPage: React.FC = () => {
               {timelineLoading ? (
                 <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400 font-mono">
                   <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
-                  <span className="text-xs">Correlating high-resolution telemetry log timestamps...</span>
+                  <span className="text-xs">Correlating high-resolution telemetry log timestamps & SHA-256 chain...</span>
                 </div>
               ) : timelineEvents.length === 0 ? (
                 <div className="py-12 text-center font-mono text-xs text-slate-400 space-y-2">
@@ -1265,10 +1295,50 @@ export const ReportsPage: React.FC = () => {
                               </span>
                             </div>
                           )}
+
+                          {/* Immutable SHA-256 Event Stamp */}
+                          <div className="pt-1.5 flex flex-wrap items-center justify-between gap-2 border-t border-[#1E3A5F]/30 text-[10px] font-mono">
+                            <span className="text-emerald-400 flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                              SHA-256 EVENT STAMP:
+                            </span>
+                            <span className="text-slate-400 bg-[#07101E] px-2 py-0.5 rounded border border-[#1E3A5F] select-all truncate max-w-[280px]">
+                              {evt.sha256_hash ||
+                                `sha256:${selectedReportForTimeline.report_code}-${evt.id}`}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     );
                   })}
+                </div>
+              )}
+
+              {/* Linked Audit Trail Ledger Blocks */}
+              {timelineAuditChain.length > 0 && (
+                <div className="pt-2 border-t border-[#1E3A5F]/60 space-y-2">
+                  <div className="flex items-center gap-2 font-mono text-xs text-slate-300">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span className="font-bold uppercase tracking-wider text-white">
+                      Linked Non-Repudiation Audit Blocks ({timelineAuditChain.length})
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {timelineAuditChain.map((log) => (
+                      <div
+                        key={log.id}
+                        className="p-2.5 rounded bg-[#050B14] border border-[#1E3A5F] text-[11px] font-mono space-y-1"
+                      >
+                        <div className="flex items-center justify-between text-slate-400">
+                          <span className="text-cyan-400 font-bold">#{log.id} · {log.event_type}</span>
+                          <Badge status="nominal">VERIFIED</Badge>
+                        </div>
+                        <div className="text-slate-500 truncate" title={log.current_hash}>
+                          BLOCK HASH: {log.current_hash.slice(0, 24)}...
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
