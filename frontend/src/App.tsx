@@ -24,6 +24,7 @@ export default function App() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/articles" element={<ArticlesPage />} />
+          <Route path="/academy" element={<AcademyPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/unauthorized" element={
             <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-4">
