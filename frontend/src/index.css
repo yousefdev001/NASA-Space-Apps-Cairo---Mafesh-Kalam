@@ -79,3 +79,93 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-hud-cyan);
 }
+
+/* ========================================================
+   AuraMed Biometric Sketchbook Theme Tokens & Utilities
+   Source: https://ro2ya-tech.com/
+   ======================================================== */
+:root {
+  --hd-bg: #fdfbf7;
+  --hd-fg: #2d2d2d;
+  --hd-muted: #e5e0d8;
+  --hd-accent: #ff4d00;
+  --hd-secondary: #2d5da1;
+  --hd-card: #ffffff;
+  --hd-note: #fff9c4;
+  --hd-dot: #d6cfc2;
+  --hd-shadow: #2d2d2d;
+}
+
+.font-display-kalam {
+  font-family: 'Kalam', cursive, system-ui, -apple-system, sans-serif;
+}
+
+.font-sketch-hand {
+  font-family: 'Patrick Hand', cursive, ui-monospace, sans-serif;
+}
+
+/* Paper Grain Texture */
+.paper-grain {
+  background-color: var(--hd-bg, #fdfbf7);
+  background-image: radial-gradient(var(--hd-dot, #d6cfc2) 1.15px, transparent 1.15px);
+  background-size: 24px 24px;
+}
+
+.paper-grain-dark {
+  background-color: #0c0c10;
+  background-image: radial-gradient(rgba(255, 77, 0, 0.28) 1.15px, transparent 1.15px);
+  background-size: 24px 24px;
+}
+
+/* Hard Sketch Shadows */
+.sketch-shadow {
+  box-shadow: 4px 4px 0px 0px var(--hd-shadow, #2d2d2d);
+}
+
+.sketch-shadow-lg {
+  box-shadow: 8px 8px 0px 0px var(--hd-shadow, #2d2d2d);
+}
+
+.sketch-shadow-card {
+  box-shadow: 4px 4px 0px 0px rgba(45, 45, 45, 0.16);
+}
+
+.sketch-shadow-orange {
+  box-shadow: 4px 4px 0px 0px #FF4D00;
+}
+
+.sketch-shadow-orange-lg {
+  box-shadow: 8px 8px 0px 0px #FF4D00;
+}
+
+/* Interactive Tactile Push Buttons */
+.sketch-btn {
+  box-shadow: 4px 4px 0px 0px var(--hd-shadow, #2d2d2d);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.12s ease, color 0.12s ease;
+}
+
+.sketch-btn:hover {
+  box-shadow: 2px 2px 0px 0px var(--hd-shadow, #2d2d2d);
+  transform: translate(2px, 2px);
+}
+
+.sketch-btn:active {
+  box-shadow: 0px 0px 0px 0px var(--hd-shadow, #2d2d2d);
+  transform: translate(4px, 4px);
+}
+
+.sketch-btn-orange {
+  box-shadow: 4px 4px 0px 0px #FF4D00;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.12s ease, color 0.12s ease;
+}
+
+.sketch-btn-orange:hover {
+  box-shadow: 2px 2px 0px 0px #FF4D00;
+  transform: translate(2px, 2px);
+}
+
+.sketch-btn-orange:active {
+  box-shadow: 0px 0px 0px 0px #FF4D00;
+  transform: translate(4px, 4px);
+}
+

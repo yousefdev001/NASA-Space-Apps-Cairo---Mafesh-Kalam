@@ -312,9 +312,8 @@ export const BioTwinPage: React.FC = () => {
       <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 items-stretch">
         {/* Holographic Avatar Center Viewport */}
         <div
-          className={`relative rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-[#0B132B]/95 via-[#050B14]/90 to-[#0B132B]/95 p-3.5 sm:p-4 lg:p-5 backdrop-blur-2xl shadow-[0_0_35px_rgba(0,229,255,0.08)] overflow-hidden transition-all duration-300 flex flex-col justify-between ${
-            isDrawerOpen ? 'lg:col-span-7 xl:col-span-7 2xl:col-span-8' : 'lg:col-span-12'
-          }`}
+          className={`relative rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-[#0B132B]/95 via-[#050B14]/90 to-[#0B132B]/95 p-3.5 sm:p-4 lg:p-5 backdrop-blur-2xl shadow-[0_0_35px_rgba(0,229,255,0.08)] overflow-hidden transition-all duration-300 flex flex-col justify-between ${isDrawerOpen ? 'lg:col-span-7 xl:col-span-7 2xl:col-span-8' : 'lg:col-span-12'
+            }`}
         >
           {/* Subtle Ambient HUD Grid Background */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-500/10 via-transparent to-transparent" />
@@ -340,11 +339,10 @@ export const BioTwinPage: React.FC = () => {
                     key={id}
                     type="button"
                     onClick={() => handleToggleLayer(id)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-mono transition-all cursor-pointer ${
-                      isActive
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-mono transition-all cursor-pointer ${isActive
                         ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-[0_0_8px_rgba(0,229,255,0.2)]'
                         : 'bg-slate-900/50 border-slate-800 text-slate-500 hover:text-slate-300'
-                    }`}
+                      }`}
                   >
                     <IconComponent className="h-3 w-3 shrink-0" />
                     <span>{label}</span>
@@ -369,9 +367,8 @@ export const BioTwinPage: React.FC = () => {
                   type="button"
                   onClick={() => setShaderMode('holographic')}
                   title="Cyber Hologram"
-                  className={`p-1 rounded transition-all cursor-pointer ${
-                    shaderMode === 'holographic' ? 'bg-cyan-500/25 text-cyan-300' : 'text-slate-500 hover:text-slate-300'
-                  }`}
+                  className={`p-1 rounded transition-all cursor-pointer ${shaderMode === 'holographic' ? 'bg-cyan-500/25 text-cyan-300' : 'text-slate-500 hover:text-slate-300'
+                    }`}
                 >
                   <Sparkles className="h-3.5 w-3.5" />
                 </button>
@@ -379,9 +376,8 @@ export const BioTwinPage: React.FC = () => {
                   type="button"
                   onClick={() => setShaderMode('thermal_heatmap')}
                   title="Thermal Heatmap"
-                  className={`p-1 rounded transition-all cursor-pointer ${
-                    shaderMode === 'thermal_heatmap' ? 'bg-amber-500/25 text-amber-300' : 'text-slate-500 hover:text-slate-300'
-                  }`}
+                  className={`p-1 rounded transition-all cursor-pointer ${shaderMode === 'thermal_heatmap' ? 'bg-amber-500/25 text-amber-300' : 'text-slate-500 hover:text-slate-300'
+                    }`}
                 >
                   <Flame className="h-3.5 w-3.5" />
                 </button>
@@ -389,9 +385,8 @@ export const BioTwinPage: React.FC = () => {
                   type="button"
                   onClick={() => setShaderMode('radiation_flux')}
                   title="Radiation Flux"
-                  className={`p-1 rounded transition-all cursor-pointer ${
-                    shaderMode === 'radiation_flux' ? 'bg-fuchsia-500/25 text-fuchsia-300' : 'text-slate-500 hover:text-slate-300'
-                  }`}
+                  className={`p-1 rounded transition-all cursor-pointer ${shaderMode === 'radiation_flux' ? 'bg-fuchsia-500/25 text-fuchsia-300' : 'text-slate-500 hover:text-slate-300'
+                    }`}
                 >
                   <Radio className="h-3.5 w-3.5" />
                 </button>
@@ -412,11 +407,10 @@ export const BioTwinPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowCalloutPins(!showCalloutPins)}
-                className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-mono font-bold transition-all cursor-pointer ${
-                  showCalloutPins
+                className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-mono font-bold transition-all cursor-pointer ${showCalloutPins
                     ? 'border-cyan-400 bg-cyan-500/20 text-cyan-300 shadow-[0_0_10px_rgba(0,229,255,0.2)]'
                     : 'border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-white'
-                }`}
+                  }`}
                 title="Toggle HUD landmark callouts"
               >
                 <Radio className="h-3 w-3" />
@@ -427,11 +421,10 @@ export const BioTwinPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-                className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-mono font-bold transition-all cursor-pointer ${
-                  isDrawerOpen
+                className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-mono font-bold transition-all cursor-pointer ${isDrawerOpen
                     ? 'border-cyan-400 bg-cyan-500/25 text-cyan-300'
                     : 'border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-white'
-                }`}
+                  }`}
               >
                 <Stethoscope className="h-3 w-3" />
                 <span>{isDrawerOpen ? 'HIDE DOSSIER' : 'INSPECT DOSSIER'}</span>
@@ -556,15 +549,14 @@ export const BioTwinPage: React.FC = () => {
                 key={organ.id}
                 type="button"
                 onClick={() => handleSelectOrgan(organ.id)}
-                className={`group relative text-left rounded-xl p-3 border transition-all duration-200 cursor-pointer ${
-                  isSelected
+                className={`group relative text-left rounded-xl p-3 border transition-all duration-200 cursor-pointer ${isSelected
                     ? 'border-cyan-400 bg-cyan-950/40 shadow-[0_0_15px_rgba(0,229,255,0.25)]'
                     : isCritical
-                    ? 'border-red-500/50 bg-red-950/20 hover:border-red-400'
-                    : isWarning
-                    ? 'border-amber-500/50 bg-amber-950/20 hover:border-amber-400'
-                    : 'border-[#1E3A5F]/70 bg-[#050B14]/70 hover:border-cyan-500/40 hover:bg-[#0B132B]'
-                }`}
+                      ? 'border-red-500/50 bg-red-950/20 hover:border-red-400'
+                      : isWarning
+                        ? 'border-amber-500/50 bg-amber-950/20 hover:border-amber-400'
+                        : 'border-[#1E3A5F]/70 bg-[#050B14]/70 hover:border-cyan-500/40 hover:bg-[#0B132B]'
+                  }`}
               >
                 {/* Active selection dot */}
                 {isSelected && (
@@ -573,15 +565,14 @@ export const BioTwinPage: React.FC = () => {
 
                 <div className="flex items-center gap-2">
                   <div
-                    className={`flex h-7 w-7 items-center justify-center rounded-lg border ${
-                      isSelected
+                    className={`flex h-7 w-7 items-center justify-center rounded-lg border ${isSelected
                         ? 'border-cyan-400 bg-cyan-500/20 text-cyan-300'
                         : isCritical
-                        ? 'border-red-500/40 bg-red-500/15 text-red-400'
-                        : isWarning
-                        ? 'border-amber-500/40 bg-amber-500/15 text-amber-400'
-                        : 'border-[#1E3A5F] bg-[#0B132B] text-slate-400 group-hover:text-cyan-300'
-                    }`}
+                          ? 'border-red-500/40 bg-red-500/15 text-red-400'
+                          : isWarning
+                            ? 'border-amber-500/40 bg-amber-500/15 text-amber-400'
+                            : 'border-[#1E3A5F] bg-[#0B132B] text-slate-400 group-hover:text-cyan-300'
+                      }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
                   </div>
@@ -597,13 +588,12 @@ export const BioTwinPage: React.FC = () => {
 
                 <div className="mt-2 flex items-center justify-between text-[10px] font-mono border-t border-[#1E3A5F]/40 pt-1.5">
                   <span
-                    className={`font-bold uppercase ${
-                      isCritical
+                    className={`font-bold uppercase ${isCritical
                         ? 'text-red-400'
                         : isWarning
-                        ? 'text-amber-400'
-                        : 'text-emerald-400'
-                    }`}
+                          ? 'text-amber-400'
+                          : 'text-emerald-400'
+                      }`}
                   >
                     ● {organ.status}
                   </span>

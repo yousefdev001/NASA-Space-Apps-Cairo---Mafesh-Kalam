@@ -67,6 +67,7 @@ interface OrganTelemetryGridProps {
   selectedOrganId?: string;
   className?: string;
   compact?: boolean;
+  themeMode?: 'cyber' | 'paper' | 'dark';
 }
 
 export const OrganTelemetryGrid: React.FC<OrganTelemetryGridProps> = ({
@@ -75,13 +76,118 @@ export const OrganTelemetryGrid: React.FC<OrganTelemetryGridProps> = ({
   selectedOrganId,
   className,
   compact = true,
+  themeMode = 'cyber',
 }) => {
+  const isPaper = themeMode === 'paper';
+  const isDark = themeMode === 'dark';
+  const isSketch = isPaper || isDark;
+
   if (compact) {
     return (
       <div className={clsx('grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5', className)}>
         {organs.map((organ) => {
           const Icon = organ.icon;
           const isSelected = selectedOrganId === organ.id;
+
+          if (isSketch) {
+            return (
+              <div
+                key={organ.id}
+                onClick={() => onSelectOrgan?.(organ)}
+                style={{
+                  borderRadius: '18px 8px 16px 10px / 10px 16px 8px 18px',
+                }}
+                className={clsx(
+                  'group relative p-3 transition-all duration-150 cursor-pointer border-[2.5px] select-none flex flex-col justify-between min-h-[124px]',
+                  isPaper
+                    ? isSelected
+                      ? 'bg-[#fff9c4] border-[#ff4d4d] sketch-shadow translate-y-[-2px]'
+                      : 'bg-[#fdfbf7] border-[#2d2d2d] hover:bg-[#fff9c4]/60 hover:translate-y-[-1px]'
+                    : isSelected
+                      ? 'bg-[#18110c] border-[#FF4D00] sketch-shadow-orange translate-y-[-2px]'
+                      : 'bg-[#0c0c10] border-[#FF4D00]/70 hover:border-[#FF4D00] hover:translate-y-[-1px]'
+                )}
+              >
+                {/* Header: Mini Icon + Score Badge */}
+                <div className="flex items-center justify-between mb-2">
+                  <div
+                    style={{ borderRadius: '48% 52% 45% 55% / 54% 46% 52% 48%' }}
+                    className={clsx(
+                      'w-8 h-8 border flex items-center justify-center transition-transform group-hover:scale-105',
+                      isPaper
+                        ? 'bg-white border-[#2d2d2d] text-[#2d5da1]'
+                        : 'bg-black border-[#FF4D00] text-[#FF4D00]'
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <span
+                    style={{ borderRadius: '12px 6px 14px 6px / 6px 12px 6px 14px' }}
+                    className={clsx(
+                      'px-2 py-0.5 text-xs font-sketch-hand font-bold border',
+                      isPaper
+                        ? 'bg-white border-[#2d2d2d] text-[#2d2d2d]'
+                        : 'bg-black border-[#FF4D00] text-white'
+                    )}
+                  >
+                    {organ.score}%
+                  </span>
+                </div>
+
+                {/* Organ Name & System Category */}
+                <div className="mb-2">
+                  <h4
+                    className={clsx(
+                      'font-display-kalam font-bold text-xs truncate',
+                      isPaper ? 'text-[#2d2d2d]' : 'text-white'
+                    )}
+                  >
+                    {organ.name}
+                  </h4>
+                  <p
+                    className={clsx(
+                      'text-[11px] truncate font-sketch-hand',
+                      isPaper ? 'text-[#2d2d2d]/75' : 'text-white/70'
+                    )}
+                  >
+                    {organ.system}
+                  </p>
+                </div>
+
+                {/* Footer: Live Status & Value */}
+                <div
+                  className={clsx(
+                    'pt-1.5 border-t border-dashed flex items-center justify-between gap-1',
+                    isPaper ? 'border-[#2d2d2d]/30' : 'border-[#FF4D00]/40'
+                  )}
+                >
+                  <span
+                    className={clsx(
+                      'text-[10px] font-sketch-hand font-bold px-1.5 py-0.2 rounded border',
+                      organ.status === 'nominal'
+                        ? isPaper
+                          ? 'bg-emerald-100 text-emerald-900 border-[#2d2d2d]'
+                          : 'bg-emerald-950/70 text-emerald-300 border-emerald-400'
+                        : isPaper
+                          ? 'bg-[#ff4d4d] text-white border-[#2d2d2d]'
+                          : 'bg-[#FF4D00] text-black border-white'
+                    )}
+                  >
+                    {organ.status.toUpperCase()}
+                  </span>
+                  <span
+                    className={clsx(
+                      'font-sketch-hand text-[11px] font-bold truncate',
+                      isPaper ? 'text-[#2d5da1]' : 'text-[#FF4D00]'
+                    )}
+                    title={organ.metricValue}
+                  >
+                    {organ.metricValue}
+                  </span>
+                </div>
+              </div>
+            );
+          }
 
           return (
             <div

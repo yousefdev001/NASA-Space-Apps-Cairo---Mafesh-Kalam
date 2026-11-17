@@ -21,6 +21,7 @@ export interface NeuroRiskData {
 interface NeuroRiskCardProps {
   data?: NeuroRiskData;
   callsign?: string;
+  themeMode?: 'cyber' | 'paper' | 'dark';
 }
 
 export const NeuroRiskCard: React.FC<NeuroRiskCardProps> = ({
@@ -39,17 +40,32 @@ export const NeuroRiskCard: React.FC<NeuroRiskCardProps> = ({
     fluid_shift_jvp_mmhg: 1.4,
   },
   callsign = 'CDR-01',
+  themeMode = 'cyber',
 }) => {
+  const isPaper = themeMode === 'paper';
+  const isDark = themeMode === 'dark';
+  const isSketch = isPaper || isDark;
+
   return (
     <Card
       title={`NEURO-COGNITIVE SPECTRUM & SANS PREDICTOR · ${callsign}`}
       subtitle="Cerebral EEG Density, Decompression Spencer Scale & SANS Vector"
+      themeMode={themeMode}
+      decoration={isSketch ? 'tape' : 'none'}
       headerAction={
         <div className="flex items-center gap-2">
-          <Badge status={data.readiness_score >= 85 ? 'nominal' : 'warning'}>
+          <Badge status={data.readiness_score >= 85 ? 'nominal' : 'warning'} themeMode={themeMode}>
             {data.readiness_score}% READINESS
           </Badge>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/70 border border-purple-500/40 text-purple-300 font-bold hidden sm:inline-block">
+          <span
+            className={
+              isPaper
+                ? 'text-[11px] font-sketch-hand px-2.5 py-0.5 rounded border border-[#2d2d2d] bg-[#fff9c4] text-[#2d2d2d] font-bold hidden sm:inline-block'
+                : isDark
+                  ? 'text-[11px] font-sketch-hand px-2.5 py-0.5 rounded border border-white bg-black text-[#FF4D00] font-bold hidden sm:inline-block'
+                  : 'text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/70 border border-purple-500/40 text-purple-300 font-bold hidden sm:inline-block'
+            }
+          >
             BIO-AI PREDICTIVE
           </span>
         </div>

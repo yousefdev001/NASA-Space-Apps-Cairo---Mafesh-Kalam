@@ -22,6 +22,7 @@ export interface SuitTelemetryData {
 interface SuitTelemetryCardProps {
   suit?: SuitTelemetryData;
   callsign?: string;
+  themeMode?: 'cyber' | 'paper' | 'dark';
 }
 
 export const SuitTelemetryCard: React.FC<SuitTelemetryCardProps> = ({
@@ -41,17 +42,32 @@ export const SuitTelemetryCard: React.FC<SuitTelemetryCardProps> = ({
     status: 'nominal',
   },
   callsign = 'CDR-01',
+  themeMode = 'cyber',
 }) => {
+  const isPaper = themeMode === 'paper';
+  const isDark = themeMode === 'dark';
+  const isSketch = isPaper || isDark;
+
   return (
     <Card
       title={`SPACESUIT BIO-HARNESS & xEMU · ${callsign}`}
       subtitle="Extravehicular Micro-Environment & Closed-Loop Avionics Telemetry"
+      themeMode={themeMode}
+      decoration={isSketch ? 'pin' : 'none'}
       headerAction={
         <div className="flex items-center gap-2">
-          <Badge status={suit.status} pulse={suit.status !== 'nominal'}>
+          <Badge status={suit.status} pulse={suit.status !== 'nominal'} themeMode={themeMode}>
             {suit.status}
           </Badge>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 font-bold hidden sm:inline-block">
+          <span
+            className={
+              isPaper
+                ? 'text-[11px] font-sketch-hand px-2.5 py-0.5 rounded border border-[#2d2d2d] bg-[#fff9c4] text-[#2d2d2d] font-bold hidden sm:inline-block'
+                : isDark
+                  ? 'text-[11px] font-sketch-hand px-2.5 py-0.5 rounded border border-white bg-black text-[#FF4D00] font-bold hidden sm:inline-block'
+                  : 'text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 font-bold hidden sm:inline-block'
+            }
+          >
             {suit.mode}
           </span>
         </div>
