@@ -20,15 +20,27 @@ class ArticleController extends Controller
             ->where('is_published', true)
             ->orderBy('published_at', 'desc');
 
-        if ($request->has('audience') && in_array($request->query('audience'), ['kids', 'adults'])) {
+        if ($request->filled('audience') && in_array($request->query('audience'), ['kids', 'adults'])) {
             $query->where('target_audience', $request->query('audience'));
         }
 
-        if ($request->has('category')) {
+        if ($request->filled('category') && $request->query('category') !== 'all') {
             $query->where('category', $request->query('category'));
         }
 
-        $articles = $query->paginate($request->query('per_page', 9));
+        if ($request->filled('search')) {
+            $search = '%'.trim($request->query('search')).'%';
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', $search)
+                    ->orWhere('excerpt', 'like', $search)
+                    ->orWhere('content', 'like', $search)
+                    ->orWhereHas('tags', function ($tq) use ($search) {
+                        $tq->where('name', 'like', $search);
+                    });
+            });
+        }
+
+        $articles = $query->paginate($request->query('per_page', 12));
 
         return ApiResponse::paginated($articles, 'Educational articles retrieved.');
     }
@@ -47,11 +59,12 @@ class ArticleController extends Controller
         $article->increment('views_count');
 
         // Fetch 3 related articles from same audience
-        $related = Article::where('target_audience', $article->target_audience)
+        $related = Article::with('tags:id,name,slug')
+            ->where('target_audience', $article->target_audience)
             ->where('id', '!=', $article->id)
             ->where('is_published', true)
             ->limit(3)
-            ->get(['id', 'slug', 'title', 'excerpt', 'target_audience', 'thumbnail_path', 'reading_time_minutes']);
+            ->get(['id', 'slug', 'title', 'excerpt', 'target_audience', 'category', 'thumbnail_path', 'reading_time_minutes', 'views_count', 'published_at']);
 
         return ApiResponse::success([
             'article' => $article,
@@ -93,6 +106,8 @@ class ArticleController extends Controller
 
         $slug = Str::slug($data['title']).'-'.Str::lower(Str::random(6));
 
+        $isPublished = array_key_exists('is_published', $data) ? (bool) $data['is_published'] : true;
+
         $article = Article::create([
             'uuid' => (string) Str::uuid(),
             'author_id' => auth()->id() ?? 1,
@@ -103,8 +118,8 @@ class ArticleController extends Controller
             'target_audience' => $data['target_audience'],
             'category' => $data['category'] ?? 'General Bio-Astronautics',
             'reading_time_minutes' => $data['reading_time_minutes'] ?? 5,
-            'is_published' => $data['is_published'] ?? false,
-            'published_at' => ($data['is_published'] ?? false) ? now() : null,
+            'is_published' => $isPublished,
+            'published_at' => $isPublished ? now() : null,
         ]);
 
         if (! empty($data['tags'])) {

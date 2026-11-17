@@ -11,6 +11,7 @@ use App\Http\Controllers\MissionControlController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TelemetryController;
 use App\Http\Responses\ApiResponse;
+use App\Models\Mission;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -67,6 +68,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Mission Control Live Telemetry
     Route::get('/dashboard/mission-control', [MissionControlController::class, 'dashboard'])
         ->middleware('permission:view_vital_readings');
+    Route::get('/mission-control', [MissionControlController::class, 'dashboard'])
+        ->middleware('permission:view_vital_readings');
 
     // Astronauts Roster & Medical Records
     Route::prefix('astronauts')->group(function () {
@@ -79,7 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Missions & Crew Readiness
     Route::get('/missions', function () {
         return ApiResponse::success(
-            DB::table('missions')->orderBy('launch_date', 'desc')->get()
+            Mission::with(['crew', 'phases'])->orderBy('launch_date', 'desc')->get()
         );
     })->middleware('permission:view_missions');
 

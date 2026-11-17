@@ -28,6 +28,11 @@ class Mission extends Model
             ->withTimestamps();
     }
 
+    public function phases()
+    {
+        return $this->hasMany(MissionPhase::class)->orderBy('phase_order');
+    }
+
     public function alerts()
     {
         return $this->hasMany(Alert::class);

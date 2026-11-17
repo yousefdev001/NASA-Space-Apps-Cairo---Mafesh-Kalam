@@ -161,6 +161,35 @@ class MissionAndAstronautSeeder extends Seeder
             );
         }
 
+        // 3b. Mission Operational Phases
+        $phases = [
+            // Artemis IV
+            ['mission_id' => 1, 'phase_order' => 1, 'phase_name' => 'Trans-Lunar Injection', 'status' => 'completed', 'started_at' => now()->subDays(42), 'completed_at' => now()->subDays(39), 'description' => 'Translunar burn executed by SLS Block 1B second stage. High-gain tracking acquired.'],
+            ['mission_id' => 1, 'phase_order' => 2, 'phase_name' => 'Gateway Docking', 'status' => 'completed', 'started_at' => now()->subDays(39), 'completed_at' => now()->subDays(35), 'description' => 'Soft capture and autonomous hard-docking with Lunar Gateway HALO module.'],
+            ['mission_id' => 1, 'phase_order' => 3, 'phase_name' => 'Habitat Pressurization', 'status' => 'active', 'started_at' => now()->subDays(35), 'completed_at' => null, 'description' => 'I-Hab internal atmospheric equalization and closed-loop life support system validation.'],
+            ['mission_id' => 1, 'phase_order' => 4, 'phase_name' => 'Lunar South Pole EVA', 'status' => 'pending', 'started_at' => null, 'completed_at' => null, 'description' => 'Crew surface descent in Human Landing System (HLS) to Shackleton Crater permanently shadowed region.'],
+            ['mission_id' => 1, 'phase_order' => 5, 'phase_name' => 'Earth Return & Recovery', 'status' => 'pending', 'started_at' => null, 'completed_at' => null, 'description' => 'Trans-Earth injection burn, atmospheric entry interface, and Pacific Ocean retrieval.'],
+
+            // Expedition-74
+            ['mission_id' => 2, 'phase_order' => 1, 'phase_name' => 'Launch & Rendezvous', 'status' => 'completed', 'started_at' => now()->subDays(95), 'completed_at' => now()->subDays(94), 'description' => 'Autonomous Falcon 9 launch from LC-39A and docking to Node 2 Harmony forward port.'],
+            ['mission_id' => 2, 'phase_order' => 2, 'phase_name' => 'Science Payload Activation', 'status' => 'active', 'started_at' => now()->subDays(94), 'completed_at' => null, 'description' => 'Cellular microgravity bioreactor deployment and continuous cardiovascular telemetry downlink.'],
+            ['mission_id' => 2, 'phase_order' => 3, 'phase_name' => 'EVA Radiator Inspection', 'status' => 'pending', 'started_at' => null, 'completed_at' => null, 'description' => 'Scheduled robotic arm inspection and ammonia loop pressure survey of starboard radiators.'],
+            ['mission_id' => 2, 'phase_order' => 4, 'phase_name' => 'Crew Rotation Handover', 'status' => 'pending', 'started_at' => null, 'completed_at' => null, 'description' => 'Orbital handover briefing and cold-stowage sample transfer for Expedition 75 arrival.'],
+
+            // Ares-Pathfinder
+            ['mission_id' => 3, 'phase_order' => 1, 'phase_name' => 'Hab Integration', 'status' => 'pending', 'started_at' => null, 'completed_at' => null, 'description' => 'Hermetic seal integrity and autonomous life-support closed-loop baseline validation.'],
+            ['mission_id' => 3, 'phase_order' => 2, 'phase_name' => 'Comms Latency Protocol', 'status' => 'pending', 'started_at' => null, 'completed_at' => null, 'description' => 'Simulating 22-minute bidirectional Mars-Earth radio communication delay.'],
+            ['mission_id' => 3, 'phase_order' => 3, 'phase_name' => 'Solar Storm Protocol', 'status' => 'pending', 'started_at' => null, 'completed_at' => null, 'description' => 'Deep-space storm shelter deployment and heavy ion dosimeter calibration.'],
+            ['mission_id' => 3, 'phase_order' => 4, 'phase_name' => 'Autonomous Clinical Triage', 'status' => 'pending', 'started_at' => null, 'completed_at' => null, 'description' => 'AuraMed offline Edge-AI diagnostic validation without ground station guidance.'],
+        ];
+
+        foreach ($phases as $phase) {
+            DB::table('mission_phases')->updateOrInsert(
+                ['mission_id' => $phase['mission_id'], 'phase_order' => $phase['phase_order']],
+                array_merge($phase, ['created_at' => now(), 'updated_at' => now()])
+            );
+        }
+
         // 4. Seed Astronaut Baselines
         foreach ($astronauts as $astro) {
             DB::table('astronaut_medical_baselines')->updateOrInsert(
