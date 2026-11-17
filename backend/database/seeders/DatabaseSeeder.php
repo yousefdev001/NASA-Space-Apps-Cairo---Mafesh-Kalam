@@ -78,5 +78,8 @@ class DatabaseSeeder extends Seeder
 
             $user->syncRoles([$userData['role']]);
         }
+
+        // 5. Seed Complete AuraMed Domain (AI Insights, Alerts, Reports, Academy, Articles, Audit)
+        $this->call(AuraMedFullSeeder::class);
     }
 }

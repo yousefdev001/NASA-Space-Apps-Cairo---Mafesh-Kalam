@@ -2,6 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\AiInsight;
+use App\Models\Alert;
+use App\Models\Article;
+use App\Models\Report;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,6 +19,7 @@ class AuraMedApiTest extends TestCase
         parent::setUp();
         $this->seed();
     }
+
     /**
      * Test system health endpoint.
      */
@@ -120,5 +125,168 @@ class AuraMedApiTest extends TestCase
         $response->assertStatus(201)
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.packets_processed', 1);
+    }
+
+    /**
+     * Test AI insights review lifecycle (HITL).
+     */
+    public function test_ai_insights_review_workflow(): void
+    {
+        $insight = AiInsight::where('review_status', 'pending_review')->first();
+        $this->assertNotNull($insight);
+
+        // 1. Approve
+        $approveRes = $this->postJson("/api/ai-insights/{$insight->id}/approve", [
+            'reviewer_notes' => 'Clinically verified by ground flight surgeon.',
+        ]);
+        $approveRes->assertStatus(200)
+            ->assertJsonPath('data.insight.review_status', 'approved');
+
+        // 2. Reject
+        $rejectRes = $this->postJson("/api/ai-insights/{$insight->id}/reject", [
+            'reviewer_notes' => 'Artifact due to baseline sensor drift.',
+        ]);
+        $rejectRes->assertStatus(200)
+            ->assertJsonPath('data.insight.review_status', 'rejected');
+
+        // 3. Stats endpoint
+        $statsRes = $this->getJson('/api/ai-insights/stats');
+        $statsRes->assertStatus(200)
+            ->assertJsonStructure(['data' => ['total', 'approved', 'rejected', 'average_confidence']]);
+    }
+
+    /**
+     * Test Alert triage workflow (acknowledge, escalate, resolve).
+     */
+    public function test_alerts_triage_workflow(): void
+    {
+        $alert = Alert::first();
+        $this->assertNotNull($alert);
+
+        // 1. Unresolved count
+        $countRes = $this->getJson('/api/alerts/unresolved-count');
+        $countRes->assertStatus(200)
+            ->assertJsonStructure(['data' => ['total_unresolved', 'critical', 'high', 'medium']]);
+
+        // 2. Acknowledge
+        $ackRes = $this->postJson("/api/alerts/{$alert->id}/acknowledge", [
+            'action_taken' => 'Oxygen mix checked and stabilized.',
+        ]);
+        $ackRes->assertStatus(200)
+            ->assertJsonPath('data.alert.status', 'acknowledged');
+
+        // 3. Escalate
+        $escRes = $this->postJson("/api/alerts/{$alert->id}/escalate", [
+            'escalated_to_role' => 'flight_surgeon',
+            'reason' => 'Anomalous trend persists across 3 consecutive scans.',
+        ]);
+        $escRes->assertStatus(200)
+            ->assertJsonPath('data.alert.status', 'escalated');
+
+        // 4. Resolve
+        $resRes = $this->postJson("/api/alerts/{$alert->id}/resolve", [
+            'resolution_notes' => 'Vitals returned to standard baseline.',
+        ]);
+        $resRes->assertStatus(200)
+            ->assertJsonPath('data.status', 'resolved');
+    }
+
+    /**
+     * Test Report generation, DomPDF export, and forensic timeline.
+     */
+    public function test_reports_generation_and_export(): void
+    {
+        // 1. Create Report
+        $payload = [
+            'title' => 'Artemis Crew Health EVA Debrief',
+            'report_type' => 'eva_debrief',
+            'astronaut_id' => 1,
+            'summary' => 'Astronaut demonstrated nominal cardiopulmonary endurance during 6-hour lunar surface excursion.',
+            'forensic_events' => [
+                [
+                    'event_time' => now()->toIso8601String(),
+                    'event_type' => 'EVA Egress',
+                    'title' => 'Suit Airlock Depressurization',
+                    'related_metric' => 'Suit Pressure',
+                    'metric_value' => '4.3 PSI',
+                    'severity' => 'info',
+                ],
+            ],
+        ];
+
+        $createRes = $this->postJson('/api/reports', $payload);
+        $createRes->assertStatus(201)
+            ->assertJsonPath('success', true);
+
+        $reportId = $createRes->json('data.id');
+
+        // 2. Forensic timeline
+        $forensicRes = $this->getJson("/api/reports/{$reportId}/forensic");
+        $forensicRes->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        // 3. Export PDF
+        $pdfRes = $this->get("/api/reports/{$reportId}/export/pdf");
+        $pdfRes->assertStatus(200)
+            ->assertHeader('content-type', 'application/pdf');
+
+        // 4. Export CSV
+        $csvRes = $this->get("/api/reports/{$reportId}/export/csv");
+        $csvRes->assertStatus(200)
+            ->assertHeader('content-type', 'text/csv; charset=UTF-8');
+    }
+
+    /**
+     * Test Academy courses, quizzes, and XP reward logic.
+     */
+    public function test_space_academy_quiz_and_gamification(): void
+    {
+        // 1. Courses list
+        $courseRes = $this->getJson('/api/academy/courses');
+        $courseRes->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        // 2. Quiz submission
+        $lessonId = 1;
+        $quizRes = $this->postJson("/api/academy/lessons/{$lessonId}/submit-quiz", [
+            'answers' => [1 => 1], // Correct answer index
+        ]);
+        $quizRes->assertStatus(200)
+            ->assertJsonPath('data.passed', true);
+
+        // 3. Leaderboard
+        $leadRes = $this->getJson('/api/academy/leaderboard');
+        $leadRes->assertStatus(200)
+            ->assertJsonPath('success', true);
+    }
+
+    /**
+     * Test Public Educational Articles system (Kids & Adults).
+     */
+    public function test_articles_public_and_slug_resolution(): void
+    {
+        // 1. List
+        $listRes = $this->getJson('/api/public/articles?audience=kids');
+        $listRes->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        // 2. Detail by slug
+        $article = Article::where('target_audience', 'kids')->first();
+        $this->assertNotNull($article);
+
+        $detailRes = $this->getJson("/api/public/articles/{$article->slug}");
+        $detailRes->assertStatus(200)
+            ->assertJsonPath('data.article.slug', $article->slug);
+    }
+
+    /**
+     * Test SHA-256 cryptographic non-repudiation audit trail.
+     */
+    public function test_audit_chain_cryptographic_verification(): void
+    {
+        $verifyRes = $this->getJson('/api/audit-logs/verify');
+        $verifyRes->assertStatus(200)
+            ->assertJsonPath('data.is_valid', true)
+            ->assertJsonPath('data.chain_status', 'CRYPTO_VERIFIED_SECURE');
     }
 }

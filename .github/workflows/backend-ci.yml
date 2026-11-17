@@ -1,0 +1,38 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, Web-System]
+    paths: ['backend/**']
+  pull_request:
+    branches: [main, Web-System]
+    paths: ['backend/**']
+
+jobs:
+  test:
+    name: PHP Tests & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, mbstring, openssl, gd
+          coverage: none
+
+      - name: Install Dependencies
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Setup Test Environment
+        working-directory: backend
+        run: |
+          cp .env.example .env.testing
+          php artisan key:generate --env=testing
+
+      - name: Run Test Suite
+        working-directory: backend
+        run: php artisan test --env=testing

@@ -3,6 +3,7 @@
 namespace App\Http\Responses;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpFoundation\Response;
 
 class ApiResponse
@@ -26,24 +27,52 @@ class ApiResponse
     }
 
     /**
+     * Return a standardized 201 Created JSON response.
+     */
+    public static function created(mixed $data = null, string $message = 'Resource created successfully.'): JsonResponse
+    {
+        return self::success($data, $message, Response::HTTP_CREATED);
+    }
+
+    /**
      * Return a standardized paginated response.
      */
-    public static function paginated(mixed $resourceCollection, string $message = 'Success'): JsonResponse
+    public static function paginated(mixed $paginatedData, string $message = 'Success'): JsonResponse
     {
-        $paginated = $resourceCollection->response()->getData(true);
+        if ($paginatedData instanceof LengthAwarePaginator) {
+            $array = $paginatedData->toArray();
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => $array['data'],
+                'meta' => [
+                    'current_page' => $array['current_page'],
+                    'last_page' => $array['last_page'],
+                    'per_page' => $array['per_page'],
+                    'total' => $array['total'],
+                ],
+                'links' => [
+                    'first' => $array['first_page_url'],
+                    'last' => $array['last_page_url'],
+                    'prev' => $array['prev_page_url'],
+                    'next' => $array['next_page_url'],
+                ],
+            ]);
+        }
 
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data' => $paginated['data'] ?? $resourceCollection,
-            'meta' => [
-                'current_page' => $paginated['meta']['current_page'] ?? null,
-                'last_page' => $paginated['meta']['last_page'] ?? null,
-                'per_page' => $paginated['meta']['per_page'] ?? null,
-                'total' => $paginated['meta']['total'] ?? null,
-            ],
-            'links' => $paginated['links'] ?? null,
-        ]);
+        // Fallback or Resource collection
+        if (is_object($paginatedData) && method_exists($paginatedData, 'response')) {
+            $array = $paginatedData->response()->getData(true);
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => $array['data'] ?? $paginatedData,
+                'meta' => $array['meta'] ?? [],
+                'links' => $array['links'] ?? [],
+            ]);
+        }
+
+        return self::success($paginatedData, $message);
     }
 
     /**
