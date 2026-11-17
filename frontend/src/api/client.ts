@@ -1,10 +1,16 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  (typeof window !== 'undefined' && window.location.hostname.includes('ro2ya-tech.com')
-    ? 'https://api-auramed.ro2ya-tech.com/api'
-    : 'http://localhost:8001/api');
+export const getApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host.includes('ro2ya-tech.com') || (host !== 'localhost' && host !== '127.0.0.1' && !host.startsWith('192.168.') && !host.startsWith('10.'))) {
+      return 'https://api-auramed.ro2ya-tech.com/api';
+    }
+  }
+  return import.meta.env.VITE_API_URL || 'http://localhost:8001/api';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -15,8 +21,10 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
+// Dynamically ensure request always hits correct baseURL even if domain switches
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    config.baseURL = getApiBaseUrl();
     const token = localStorage.getItem('auramed_token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
