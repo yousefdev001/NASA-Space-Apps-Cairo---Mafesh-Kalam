@@ -1,90 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Lock, Mail, ArrowRight, ShieldCheck, UserCheck, GraduationCap, Wrench, Shield, Stethoscope } from 'lucide-react';
+import { Activity, Lock, Mail, ArrowRight, ShieldCheck, UserCheck, GraduationCap, Wrench, Shield, Stethoscope, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { User, UserRole } from '../types/auth.types';
+import { UserRole } from '../types/auth.types';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import apiClient from '../api/client';
-
-// Real Spatie RBAC permission mapping for simulation & fallback testing
-const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
-  flight_surgeon: [
-    'view_astronauts', 'view_medical_records', 'create_medical_records', 'view_astronaut_baselines',
-    'view_missions', 'view_vital_readings', 'view_organ_telemetry', 'view_ecg_recordings',
-    'view_eeg_recordings', 'view_radiation_readings', 'view_suit_telemetry',
-    'view_ai_insights', 'approve_ai_insights', 'reject_ai_insights', 'modify_ai_insights',
-    'view_alerts', 'acknowledge_alerts', 'escalate_alerts', 'resolve_alerts',
-    'view_reports', 'create_reports', 'update_reports', 'approve_reports',
-    'export_reports_pdf', 'export_reports_csv', 'view_forensic_timeline',
-    'view_academy', 'view_articles', 'view_thresholds', 'update_thresholds',
-  ],
-  mission_director: [
-    'view_astronauts', 'create_astronauts', 'update_astronauts',
-    'view_missions', 'create_missions', 'update_missions', 'assign_crew_to_mission',
-    'view_mission_media', 'upload_mission_media',
-    'view_vital_readings', 'view_organ_telemetry', 'view_ai_insights',
-    'view_alerts', 'acknowledge_alerts', 'escalate_alerts', 'resolve_alerts',
-    'view_reports', 'create_reports', 'approve_reports', 'export_reports_pdf',
-    'view_academy', 'view_articles',
-  ],
-  medical_officer: [
-    'view_astronauts', 'view_medical_records', 'view_astronaut_baselines',
-    'view_vital_readings', 'view_organ_telemetry', 'view_ecg_recordings',
-    'view_radiation_readings', 'view_ai_insights',
-    'view_alerts', 'acknowledge_alerts', 'resolve_alerts',
-    'view_reports', 'create_reports', 'view_thresholds', 'update_thresholds',
-    'view_academy', 'view_articles',
-  ],
-  biomedical_engineer: [
-    'view_astronauts', 'view_vital_readings', 'view_organ_telemetry',
-    'view_suit_telemetry', 'view_radiation_readings', 'view_alerts',
-    'view_reports', 'create_reports', 'view_thresholds', 'update_thresholds',
-    'view_academy', 'view_articles',
-  ],
-  astronaut_crew: [
-    'view_own_astronaut_profile', 'view_own_vital_readings', 'view_own_alerts',
-    'view_missions', 'view_academy', 'view_articles',
-  ],
-  ground_controller: [
-    'view_astronauts', 'view_missions', 'view_vital_readings', 'view_organ_telemetry',
-    'ingest_telemetry_data', 'view_alerts', 'acknowledge_alerts',
-    'view_academy', 'view_articles',
-  ],
-  cadet_student: [
-    'view_academy', 'view_own_progress', 'view_articles',
-  ],
-  educator_content_creator: [
-    'view_academy', 'create_courses', 'update_courses', 'delete_courses',
-    'manage_quizzes', 'view_articles', 'create_articles', 'update_articles',
-    'delete_articles', 'publish_articles',
-  ],
-  auditor_compliance: [
-    'view_astronauts', 'view_missions', 'view_vital_readings', 'view_organ_telemetry',
-    'view_reports', 'view_forensic_timeline', 'view_audit_logs', 'verify_audit_chain',
-    'view_academy', 'view_articles',
-  ],
-  system_administrator: [
-    'view_astronauts', 'view_medical_records', 'create_medical_records', 'view_astronaut_baselines',
-    'view_missions', 'create_missions', 'update_missions', 'assign_crew_to_mission',
-    'view_mission_media', 'upload_mission_media', 'view_vital_readings', 'view_organ_telemetry',
-    'view_ecg_recordings', 'view_eeg_recordings', 'view_radiation_readings', 'view_suit_telemetry',
-    'ingest_telemetry_data', 'view_ai_insights', 'approve_ai_insights', 'reject_ai_insights',
-    'modify_ai_insights', 'view_ai_model_registry', 'view_alerts', 'acknowledge_alerts',
-    'escalate_alerts', 'resolve_alerts', 'dismiss_alerts', 'view_reports', 'create_reports',
-    'update_reports', 'approve_reports', 'publish_reports', 'export_reports_pdf',
-    'export_reports_csv', 'view_forensic_timeline', 'view_academy', 'view_own_progress',
-    'create_courses', 'update_courses', 'delete_courses', 'manage_quizzes', 'view_articles',
-    'create_articles', 'update_articles', 'delete_articles', 'publish_articles', 'manage_users',
-    'assign_roles', 'view_audit_logs', 'verify_audit_chain', 'manage_system_settings',
-    'view_thresholds', 'update_thresholds',
-  ],
-};
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [activeQuickRole, setActiveQuickRole] = useState<UserRole | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
   const { setAuth } = useAuthStore();
@@ -103,38 +30,59 @@ export const LoginPage: React.FC = () => {
         const roles: UserRole[] = user.roles || [];
         if (roles.includes('cadet_student') || roles.includes('educator_content_creator')) {
           navigate('/academy');
+        } else if (roles.includes('auditor_compliance')) {
+          navigate('/audit');
         } else {
           navigate('/mission-control');
         }
       }
-    } catch (err: any) {
-      setErrorMsg(
-        err.response?.data?.message || 'Authentication failed. Please verify credentials or use Quick Role simulation.'
-      );
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === 'object' && 'response' in err && (err as any).response?.data?.message
+          ? (err as any).response.data.message
+          : 'Authentication failed. Please verify credentials or use Quick Role simulation.';
+      setErrorMsg(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Quick login helper with 100% accurate role permissions separation
-  const handleQuickLogin = (role: UserRole, name: string) => {
-    const permissions = ROLE_PERMISSIONS[role] || [];
-    const mockUser: User = {
-      id: Math.floor(Math.random() * 1000) + 1,
-      uuid: `mock-${role}-uuid`,
-      name,
-      email: `${role}@auramed.nasa.gov`,
-      is_active: true,
-      roles: [role],
-      permissions,
-    };
-    setAuth(mockUser, `auramed_token_${role}_simulated`);
+  // Quick login helper: performs real Sanctum Bearer token generation via backend
+  const handleQuickLogin = async (role: UserRole) => {
+    setIsLoading(true);
+    setActiveQuickRole(role);
+    setErrorMsg('');
 
-    // Cadets & Educators start directly in Space Academy; operational flight roles route to Mission Control
-    if (role === 'cadet_student' || role === 'educator_content_creator') {
-      navigate('/academy');
-    } else {
-      navigate('/mission-control');
+    try {
+      const roleEmail = `${role}@auramed.nasa.gov`;
+      const response = await apiClient.post('/auth/login', {
+        email: roleEmail,
+        password: 'Houston@2026!',
+      });
+
+      if (response.data?.success) {
+        const { user, token } = response.data.data;
+        setAuth(user, token);
+
+        // Cadets & Educators start in Space Academy; Compliance Auditor in Audit; others in Mission Control
+        const roles: UserRole[] = user.roles || [];
+        if (roles.includes('cadet_student') || roles.includes('educator_content_creator')) {
+          navigate('/academy');
+        } else if (roles.includes('auditor_compliance')) {
+          navigate('/audit');
+        } else {
+          navigate('/mission-control');
+        }
+      }
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === 'object' && 'response' in err && (err as any).response?.data?.message
+          ? (err as any).response.data.message
+          : 'Quick login failed. Ensure Ground Station backend is running on port 8001.';
+      setErrorMsg(msg);
+    } finally {
+      setIsLoading(false);
+      setActiveQuickRole(null);
     }
   };
 
@@ -220,10 +168,15 @@ export const LoginPage: React.FC = () => {
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => handleQuickLogin('flight_surgeon', 'Dr. Henrik Lindqvist')}
-                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group"
+                disabled={isLoading}
+                onClick={() => handleQuickLogin('flight_surgeon')}
+                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Stethoscope className="w-4 h-4 text-cyan-400 shrink-0" />
+                {activeQuickRole === 'flight_surgeon' ? (
+                  <Loader2 className="w-4 h-4 text-cyan-400 shrink-0 animate-spin" />
+                ) : (
+                  <Stethoscope className="w-4 h-4 text-cyan-400 shrink-0" />
+                )}
                 <div className="min-w-0">
                   <div className="text-xs font-medium text-slate-200 group-hover:text-cyan-300 truncate">
                     Flight Surgeon
@@ -234,10 +187,15 @@ export const LoginPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin('biomedical_engineer', 'Eng. Marcus Vance')}
-                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group"
+                disabled={isLoading}
+                onClick={() => handleQuickLogin('biomedical_engineer')}
+                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Wrench className="w-4 h-4 text-emerald-400 shrink-0" />
+                {activeQuickRole === 'biomedical_engineer' ? (
+                  <Loader2 className="w-4 h-4 text-emerald-400 shrink-0 animate-spin" />
+                ) : (
+                  <Wrench className="w-4 h-4 text-emerald-400 shrink-0" />
+                )}
                 <div className="min-w-0">
                   <div className="text-xs font-medium text-slate-200 group-hover:text-emerald-300 truncate">
                     Biomedical Eng.
@@ -248,10 +206,15 @@ export const LoginPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin('cadet_student', 'Cadet Leo Armstrong')}
-                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group"
+                disabled={isLoading}
+                onClick={() => handleQuickLogin('cadet_student')}
+                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <GraduationCap className="w-4 h-4 text-purple-400 shrink-0" />
+                {activeQuickRole === 'cadet_student' ? (
+                  <Loader2 className="w-4 h-4 text-purple-400 shrink-0 animate-spin" />
+                ) : (
+                  <GraduationCap className="w-4 h-4 text-purple-400 shrink-0" />
+                )}
                 <div className="min-w-0">
                   <div className="text-xs font-medium text-slate-200 group-hover:text-purple-300 truncate">
                     Cadet Student
@@ -262,10 +225,15 @@ export const LoginPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin('auditor_compliance', 'Inspector Evelyn Reed')}
-                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group"
+                disabled={isLoading}
+                onClick={() => handleQuickLogin('auditor_compliance')}
+                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+                {activeQuickRole === 'auditor_compliance' ? (
+                  <Loader2 className="w-4 h-4 text-amber-400 shrink-0 animate-spin" />
+                ) : (
+                  <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+                )}
                 <div className="min-w-0">
                   <div className="text-xs font-medium text-slate-200 group-hover:text-amber-300 truncate">
                     Auditor & Compliance
@@ -276,10 +244,15 @@ export const LoginPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin('mission_director', 'Director Gene Kranz')}
-                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group"
+                disabled={isLoading}
+                onClick={() => handleQuickLogin('mission_director')}
+                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <UserCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                {activeQuickRole === 'mission_director' ? (
+                  <Loader2 className="w-4 h-4 text-blue-400 shrink-0 animate-spin" />
+                ) : (
+                  <UserCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                )}
                 <div className="min-w-0">
                   <div className="text-xs font-medium text-slate-200 group-hover:text-blue-300 truncate">
                     Mission Director
@@ -290,10 +263,15 @@ export const LoginPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin('system_administrator', 'AuraMed SysAdmin')}
-                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group"
+                disabled={isLoading}
+                onClick={() => handleQuickLogin('system_administrator')}
+                className="flex items-center gap-2 p-2.5 rounded-lg bg-[#050B14] hover:bg-cyan-950/40 border border-[#1E3A5F] hover:border-cyan-500/50 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Shield className="w-4 h-4 text-rose-400 shrink-0" />
+                {activeQuickRole === 'system_administrator' ? (
+                  <Loader2 className="w-4 h-4 text-rose-400 shrink-0 animate-spin" />
+                ) : (
+                  <Shield className="w-4 h-4 text-rose-400 shrink-0" />
+                )}
                 <div className="min-w-0">
                   <div className="text-xs font-medium text-slate-200 group-hover:text-rose-300 truncate">
                     System Admin
