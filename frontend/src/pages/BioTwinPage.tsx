@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { clsx } from 'clsx';
 import {
   Brain,
   Eye,
@@ -31,6 +32,8 @@ import {
   BodyLandmarkPointers,
   OrganDetailDrawer,
 } from '../components/biotwin';
+import { useThemeStore } from '../store/themeStore';
+import { getWobblyStyle } from '../components/sketchbook/sketchbookConstants';
 import bioTwinApi from '../api/bioTwinApi';
 import apiClient from '../api/client';
 
@@ -290,8 +293,22 @@ export const BioTwinPage: React.FC = () => {
   const selectedAstronaut =
     crewMembers.find((c) => c.id === selectedCrewId) || crewMembers[0];
 
+  const { mode } = useThemeStore();
+  const isPaper = mode === 'paper';
+  const isDark = mode === 'dark';
+  const isSketch = isPaper || isDark;
+
   return (
-    <div className="min-h-screen bg-[#050B14] text-white p-3 sm:p-4 lg:p-5 space-y-4 pb-16 hud-grid">
+    <div
+      className={clsx(
+        'min-h-screen p-3 sm:p-4 lg:p-5 space-y-4 pb-16 transition-colors duration-200',
+        isPaper
+          ? 'bg-[#fdfbf7] text-[#2d2d2d] paper-grain font-sketch-hand -m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-8'
+          : isDark
+            ? 'bg-[#000000] text-white paper-grain-dark font-sketch-hand -m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-8'
+            : 'bg-[#050B14] text-white hud-grid'
+      )}
+    >
       {/* 1. Top Section: Crew Header & Telemetry Sync Ribbon */}
       <BioTwinCrewHeader
         selectedCrewId={selectedCrewId}
@@ -549,55 +566,99 @@ export const BioTwinPage: React.FC = () => {
                 key={organ.id}
                 type="button"
                 onClick={() => handleSelectOrgan(organ.id)}
-                className={`group relative text-left rounded-xl p-3 border transition-all duration-200 cursor-pointer ${isSelected
-                    ? 'border-cyan-400 bg-cyan-950/40 shadow-[0_0_15px_rgba(0,229,255,0.25)]'
-                    : isCritical
-                      ? 'border-red-500/50 bg-red-950/20 hover:border-red-400'
-                      : isWarning
-                        ? 'border-amber-500/50 bg-amber-950/20 hover:border-amber-400'
-                        : 'border-[#1E3A5F]/70 bg-[#050B14]/70 hover:border-cyan-500/40 hover:bg-[#0B132B]'
-                  }`}
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  'group relative text-left p-3 border transition-all duration-150 cursor-pointer select-none',
+                  isPaper
+                    ? isSelected
+                      ? 'border-[#ff4d4d] bg-[#fff9c4] text-[#2d2d2d] sketch-shadow font-sketch-hand'
+                      : 'border-[#2d2d2d] bg-white text-[#2d2d2d] hover:bg-[#fff9c4]/50 font-sketch-hand'
+                    : isDark
+                      ? isSelected
+                        ? 'border-[#FF4D00] bg-[#18110c] text-white sketch-shadow-orange font-sketch-hand'
+                        : 'border-[#FF4D00]/60 bg-[#0c0c10] text-white hover:border-[#FF4D00] font-sketch-hand'
+                      : isSelected
+                        ? 'rounded-xl border-cyan-400 bg-cyan-950/40 shadow-[0_0_15px_rgba(0,229,255,0.25)]'
+                        : isCritical
+                          ? 'rounded-xl border-red-500/50 bg-red-950/20 hover:border-red-400'
+                          : isWarning
+                            ? 'rounded-xl border-amber-500/50 bg-amber-950/20 hover:border-amber-400'
+                            : 'rounded-xl border-[#1E3A5F]/70 bg-[#050B14]/70 hover:border-cyan-500/40 hover:bg-[#0B132B]'
+                )}
               >
                 {/* Active selection dot */}
                 {isSelected && (
-                  <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+                  <div
+                    className={clsx(
+                      'absolute top-2 right-2 h-2.5 w-2.5 rounded-full animate-ping',
+                      isPaper ? 'bg-[#ff4d4d]' : isDark ? 'bg-[#FF4D00]' : 'bg-cyan-400'
+                    )}
+                  />
                 )}
 
                 <div className="flex items-center gap-2">
                   <div
-                    className={`flex h-7 w-7 items-center justify-center rounded-lg border ${isSelected
-                        ? 'border-cyan-400 bg-cyan-500/20 text-cyan-300'
-                        : isCritical
-                          ? 'border-red-500/40 bg-red-500/15 text-red-400'
-                          : isWarning
-                            ? 'border-amber-500/40 bg-amber-500/15 text-amber-400'
-                            : 'border-[#1E3A5F] bg-[#0B132B] text-slate-400 group-hover:text-cyan-300'
-                      }`}
+                    style={isSketch ? getWobblyStyle('wobblyCircle') : undefined}
+                    className={clsx(
+                      'flex h-7 w-7 items-center justify-center border shrink-0',
+                      isPaper
+                        ? 'border-[#2d2d2d] bg-[#fdfbf7] text-[#2d5da1]'
+                        : isDark
+                          ? 'border-[#FF4D00] bg-black text-[#FF4D00]'
+                          : isSelected
+                            ? 'rounded-lg border-cyan-400 bg-cyan-500/20 text-cyan-300'
+                            : isCritical
+                              ? 'rounded-lg border-red-500/40 bg-red-500/15 text-red-400'
+                              : isWarning
+                                ? 'rounded-lg border-amber-500/40 bg-amber-500/15 text-amber-400'
+                                : 'rounded-lg border-[#1E3A5F] bg-[#0B132B] text-slate-400 group-hover:text-cyan-300'
+                    )}
                   >
                     <Icon className="h-3.5 w-3.5" />
                   </div>
                   <div className="truncate">
-                    <h4 className="text-xs font-mono font-bold text-white truncate group-hover:text-cyan-300">
+                    <h4
+                      className={clsx(
+                        'text-xs truncate font-bold',
+                        isSketch ? 'font-display-kalam text-sm' : 'font-mono text-white'
+                      )}
+                    >
                       {organ.name}
                     </h4>
-                    <span className="text-[10px] font-mono text-slate-400 truncate block">
+                    <span
+                      className={clsx(
+                        'text-[10px] truncate block',
+                        isSketch ? 'font-sketch-hand' : 'font-mono text-slate-400'
+                      )}
+                    >
                       {organ.primaryMetric?.value} {organ.primaryMetric?.unit}
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-2 flex items-center justify-between text-[10px] font-mono border-t border-[#1E3A5F]/40 pt-1.5">
+                <div
+                  className={clsx(
+                    'mt-2 flex items-center justify-between text-[10px] border-t pt-1.5',
+                    isPaper
+                      ? 'border-[#2d2d2d]/30 font-sketch-hand text-xs font-bold'
+                      : isDark
+                        ? 'border-[#FF4D00]/40 font-sketch-hand text-xs font-bold'
+                        : 'border-[#1E3A5F]/40 font-mono'
+                  )}
+                >
                   <span
-                    className={`font-bold uppercase ${isCritical
-                        ? 'text-red-400'
+                    className={clsx(
+                      'font-bold uppercase',
+                      isCritical
+                        ? isPaper ? 'text-rose-600' : 'text-red-400'
                         : isWarning
-                          ? 'text-amber-400'
-                          : 'text-emerald-400'
-                      }`}
+                          ? isPaper ? 'text-amber-700' : 'text-amber-400'
+                          : isPaper ? 'text-emerald-700' : 'text-emerald-400'
+                    )}
                   >
                     ● {organ.status}
                   </span>
-                  <span className="text-slate-400 font-bold">
+                  <span className={isPaper ? 'text-[#2d2d2d]/80' : 'text-slate-400'}>
                     {organ.score ?? organ.healthScore ?? 90}%
                   </span>
                 </div>

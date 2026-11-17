@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { clsx } from 'clsx';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -16,10 +17,21 @@ import {
   X,
   Radio,
 } from 'lucide-react';
+import { useThemeStore } from '../store/themeStore';
+import {
+  getWobblyStyle,
+  Tape,
+  SquiggleUnderline,
+} from '../components/sketchbook';
 import { clinicalApi } from '../api/clinicalApi';
 import { Alert, AlertUnresolvedCount } from '../types/clinical.types';
 
 export const AlertsPage: React.FC = () => {
+  const { mode } = useThemeStore();
+  const isPaper = mode === 'paper';
+  const isDark = mode === 'dark';
+  const isSketch = isPaper || isDark;
+
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [counts, setCounts] = useState<AlertUnresolvedCount | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -249,15 +261,34 @@ export const AlertsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className={clsx('space-y-6', isPaper && 'paper-grain text-[#2d2d2d]', isDark && 'paper-grain-dark text-white')}>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-mono font-bold text-white tracking-wide flex items-center gap-2.5">
-            <AlertTriangle className="w-6 h-6 text-rose-400" />
-            MISSION ALERTS & CLINICAL TRIAGE SYSTEM
-          </h1>
-          <p className="text-xs text-slate-400 font-mono mt-1">
+          <div className="inline-block">
+            <h1
+              className={clsx(
+                'text-2xl font-bold tracking-wide flex items-center gap-2.5',
+                isSketch ? 'font-display-kalam text-2xl sm:text-3xl' : 'font-mono text-white',
+                isPaper ? 'text-[#2d2d2d]' : isDark ? 'text-white' : 'text-white'
+              )}
+            >
+              <AlertTriangle className={clsx('w-6 h-6', isPaper ? 'text-[#ff4d4d]' : 'text-rose-400')} />
+              MISSION ALERTS & CLINICAL TRIAGE SYSTEM
+            </h1>
+            {isSketch && (
+              <div className="w-56 mt-0.5">
+                <SquiggleUnderline className={isPaper ? 'text-[#ff4d4d]' : 'text-[#FF4D00]'} />
+              </div>
+            )}
+          </div>
+          <p
+            className={clsx(
+              'text-xs mt-1',
+              isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-400',
+              isPaper ? 'text-[#2d2d2d]/75' : isDark ? 'text-white/70' : 'text-slate-400'
+            )}
+          >
             MULTI-STATE INCIDENT MANAGEMENT: TRIGGERED ➔ ACKNOWLEDGED ➔ ESCALATED ➔ RESOLVED
           </p>
         </div>
@@ -265,14 +296,18 @@ export const AlertsPage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           {counts && (
             <>
-              <Badge status={counts.total_unresolved > 0 ? 'critical' : 'nominal'}>
+              <Badge status={counts.total_unresolved > 0 ? 'critical' : 'nominal'} themeMode={mode}>
                 {counts.total_unresolved} UNRESOLVED
               </Badge>
               {counts.critical > 0 && (
-                <Badge status="critical">{counts.critical} CRITICAL</Badge>
+                <Badge status="critical" themeMode={mode}>
+                  {counts.critical} CRITICAL
+                </Badge>
               )}
               {counts.high > 0 && (
-                <Badge status="warning">{counts.high} HIGH</Badge>
+                <Badge status="warning" themeMode={mode}>
+                  {counts.high} HIGH
+                </Badge>
               )}
             </>
           )}
@@ -282,52 +317,108 @@ export const AlertsPage: React.FC = () => {
             size="sm"
             onClick={handleManualRefresh}
             isLoading={isRefreshing}
-            className="text-xs gap-1.5"
+            style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+            className={clsx(
+              'text-xs gap-1.5',
+              isSketch && (
+                isPaper
+                  ? 'bg-white text-[#2d2d2d] border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold hover:bg-[#fdfbf7]'
+                  : 'bg-[#0c0c10] text-white border-2 border-[#FF4D00] sketch-btn-orange font-sketch-hand font-bold'
+              )
+            )}
             title="Refresh Live Alerts"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Sync
+            Sync Telemetry
           </Button>
         </div>
       </div>
 
       {/* Success Banner */}
       {successMessage && (
-        <div className="p-3.5 rounded-lg bg-emerald-950/40 border border-emerald-500/50 text-emerald-300 text-xs font-mono flex items-center gap-2 animate-fadeIn">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+        <div
+          style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+          className={clsx(
+            'p-3.5 text-xs flex items-center gap-2 animate-fadeIn transition-all',
+            isSketch
+              ? isPaper
+                ? 'bg-emerald-100 border-2 border-[#2d2d2d] text-emerald-950 font-sketch-hand text-sm sketch-shadow'
+                : 'bg-emerald-950/80 border-2 border-emerald-400 text-emerald-200 font-sketch-hand text-sm sketch-shadow-orange'
+              : 'rounded-lg bg-emerald-950/40 border border-emerald-500/50 text-emerald-300 font-mono'
+          )}
+        >
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {/* Error Banner */}
       {errorMessage && (
-        <div className="p-3.5 rounded-lg bg-rose-950/40 border border-rose-500/50 text-rose-300 text-xs font-mono flex items-center justify-between gap-2">
+        <div
+          style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+          className={clsx(
+            'p-3.5 text-xs flex items-center justify-between gap-2',
+            isSketch
+              ? isPaper
+                ? 'bg-[#ff4d4d]/15 border-2 border-[#ff4d4d] text-rose-950 font-sketch-hand text-sm sketch-shadow'
+                : 'bg-[#FF4D00]/20 border-2 border-[#FF4D00] text-rose-200 font-sketch-hand text-sm sketch-shadow-orange'
+              : 'rounded-lg bg-rose-950/40 border border-rose-500/50 text-rose-300 font-mono'
+          )}
+        >
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+            <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
             <span>{errorMessage}</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setErrorMessage(null)} className="text-xs p-1">
+          <button
+            type="button"
+            onClick={() => setErrorMessage(null)}
+            className="text-xs p-1 hover:opacity-75 cursor-pointer"
+          >
             <X className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
       )}
 
       {/* Live Filters Bar */}
-      <Card className="border-[#1E3A5F] p-4 bg-[#0B132B]/60">
+      <Card
+        themeMode={mode}
+        radius="wobblySm"
+        className={clsx(
+          'p-4 transition-all',
+          !isSketch && 'border-[#1E3A5F] bg-[#0B132B]/60'
+        )}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs font-mono text-cyan-400">
-            <Filter className="w-4 h-4 text-cyan-400" />
-            <span className="font-bold">TRIAGE QUEUE FILTERS:</span>
+          <div className="flex items-center gap-2 text-xs font-mono">
+            <Filter className={clsx('w-4 h-4', isPaper ? 'text-[#ff4d4d]' : isDark ? 'text-[#FF4D00]' : 'text-cyan-400')} />
+            <span
+              className={clsx(
+                'font-bold',
+                isSketch ? 'font-sketch-hand text-sm tracking-wide' : 'font-mono text-cyan-400'
+              )}
+            >
+              TRIAGE QUEUE FILTERS:
+            </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Status Filter */}
-            <div className="flex items-center gap-1.5 text-xs font-mono">
-              <span className="text-slate-400">Incident Status:</span>
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className={clsx(isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-400')}>
+                Incident Status:
+              </span>
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="bg-[#050B14] border border-[#1E3A5F] rounded px-2.5 py-1 text-xs text-white font-mono focus:border-cyan-400 focus:outline-none cursor-pointer"
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  'px-2.5 py-1 text-xs focus:outline-none cursor-pointer transition-all',
+                  isSketch
+                    ? isPaper
+                      ? 'bg-white border-2 border-[#2d2d2d] text-[#2d2d2d] font-sketch-hand text-sm shadow-[2px_2px_0px_0px_#2d2d2d]'
+                      : 'bg-[#0c0c10] border-2 border-[#FF4D00] text-white font-sketch-hand text-sm shadow-[2px_2px_0px_0px_#FF4D00]'
+                    : 'bg-[#050B14] border border-[#1E3A5F] rounded text-white font-mono focus:border-cyan-400'
+                )}
               >
                 <option value="all">All Incidents</option>
                 <option value="triggered">Triggered</option>
@@ -339,12 +430,22 @@ export const AlertsPage: React.FC = () => {
             </div>
 
             {/* Severity Filter */}
-            <div className="flex items-center gap-1.5 text-xs font-mono">
-              <span className="text-slate-400">Severity:</span>
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className={clsx(isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-400')}>
+                Severity:
+              </span>
               <select
                 value={selectedSeverity}
                 onChange={(e) => setSelectedSeverity(e.target.value)}
-                className="bg-[#050B14] border border-[#1E3A5F] rounded px-2.5 py-1 text-xs text-white font-mono focus:border-cyan-400 focus:outline-none cursor-pointer"
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  'px-2.5 py-1 text-xs focus:outline-none cursor-pointer transition-all',
+                  isSketch
+                    ? isPaper
+                      ? 'bg-white border-2 border-[#2d2d2d] text-[#2d2d2d] font-sketch-hand text-sm shadow-[2px_2px_0px_0px_#2d2d2d]'
+                      : 'bg-[#0c0c10] border-2 border-[#FF4D00] text-white font-sketch-hand text-sm shadow-[2px_2px_0px_0px_#FF4D00]'
+                    : 'bg-[#050B14] border border-[#1E3A5F] rounded text-white font-mono focus:border-cyan-400'
+                )}
               >
                 <option value="all">All Severities</option>
                 <option value="critical">Critical</option>
@@ -361,16 +462,43 @@ export const AlertsPage: React.FC = () => {
       {/* Main Alerts List */}
       {isLoading ? (
         <div className="py-20 text-center space-y-3">
-          <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin mx-auto" />
-          <p className="text-xs font-mono text-slate-400 tracking-wider">
+          <RefreshCw
+            className={clsx(
+              'w-8 h-8 animate-spin mx-auto',
+              isPaper ? 'text-[#ff4d4d]' : isDark ? 'text-[#FF4D00]' : 'text-cyan-400'
+            )}
+          />
+          <p
+            className={clsx(
+              'text-xs tracking-wider',
+              isSketch ? 'font-sketch-hand text-base' : 'font-mono text-slate-400'
+            )}
+          >
             SYNCHRONIZING ORBITAL BIO-TELEMETRY & ALERT TRIAGE LEDGER...
           </p>
         </div>
       ) : alerts.length === 0 ? (
-        <Card className="border-[#1E3A5F] text-center py-16">
+        <Card
+          themeMode={mode}
+          radius="wobblyMd"
+          decoration={isSketch ? 'tape' : 'none'}
+          className="text-center py-16"
+        >
           <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-          <h3 className="text-sm font-mono font-bold text-white">ALL TELEMETRY NOMINAL</h3>
-          <p className="text-xs text-slate-400 font-mono mt-1">
+          <h3
+            className={clsx(
+              'text-base font-bold',
+              isSketch ? 'font-display-kalam text-lg' : 'font-mono text-white'
+            )}
+          >
+            ALL TELEMETRY NOMINAL
+          </h3>
+          <p
+            className={clsx(
+              'text-xs mt-1',
+              isSketch ? 'font-sketch-hand text-sm text-stone-500' : 'font-mono text-slate-400'
+            )}
+          >
             Zero active alerts matching the selected triage filters.
           </p>
           {(selectedStatus !== 'all' || selectedSeverity !== 'all') && (
@@ -381,14 +509,22 @@ export const AlertsPage: React.FC = () => {
                 setSelectedStatus('all');
                 setSelectedSeverity('all');
               }}
-              className="mt-4 text-xs"
+              style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+              className={clsx(
+                'mt-4 text-xs',
+                isSketch && (
+                  isPaper
+                    ? 'bg-white text-[#2d2d2d] border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold'
+                    : 'bg-[#0c0c10] text-white border-2 border-[#FF4D00] sketch-btn-orange font-sketch-hand font-bold'
+                )
+              )}
             >
               Reset Filters
             </Button>
           )}
         </Card>
       ) : (
-        <div className="space-y-3.5">
+        <div className="space-y-4">
           {alerts.map((alert) => {
             const astronautLabel = alert.astronaut
               ? `${alert.astronaut.full_name} (${alert.astronaut.callsign})`
@@ -397,19 +533,52 @@ export const AlertsPage: React.FC = () => {
             const isActionBusy = actionLoadingId === alert.id;
 
             return (
-              <Card key={alert.id} className="border-[#1E3A5F] hover:border-cyan-500/40 transition-colors">
+              /* Alert Triage Card styled as clinical warning note (#fff9c4 in paper, #18110c in dark) */
+              <div
+                key={alert.id}
+                style={isSketch ? getWobblyStyle('wobblyMd') : undefined}
+                className={clsx(
+                  'relative transition-all p-5 sm:p-6',
+                  isSketch
+                    ? isPaper
+                      ? 'bg-[#fff9c4] text-[#2d2d2d] border-[3px] border-[#2d2d2d] sketch-shadow -rotate-[0.25deg]'
+                      : 'bg-[#18110c] text-white border-[3px] border-[#FF4D00] sketch-shadow-orange -rotate-[0.25deg]'
+                    : 'rounded-xl border border-[#1E3A5F] bg-[#0B132B]/75 hover:border-cyan-500/40 shadow-md'
+                )}
+              >
+                {/* Warning Tape Header */}
+                {isSketch && (
+                  <div className="absolute -top-3.5 left-8 z-10 pointer-events-none">
+                    <Tape isDark={isDark} className="-rotate-2" />
+                  </div>
+                )}
+
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                  <div className="space-y-1.5 flex-1">
+                  <div className="space-y-2 flex-1">
+                    {/* Tags row */}
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-cyan-400 px-2 py-0.5 rounded bg-[#050B14] border border-[#1E3A5F]">
+                      <span
+                        style={isSketch ? getWobblyStyle('wobblyTag') : undefined}
+                        className={clsx(
+                          'text-xs font-bold px-2 py-0.5 select-none',
+                          isSketch
+                            ? isPaper
+                              ? 'bg-white border-2 border-[#2d2d2d] text-[#2d2d2d] font-sketch-hand shadow-[2px_2px_0px_0px_#2d2d2d]'
+                              : 'bg-black border-2 border-[#FF4D00] text-[#FF4D00] font-sketch-hand shadow-[2px_2px_0px_0px_#FF4D00]'
+                            : 'rounded bg-[#050B14] border border-[#1E3A5F] text-cyan-400 font-mono'
+                        )}
+                      >
                         {alert.alert_code}
                       </span>
 
-                      <Badge status={mapSeverityBadge(alert.severity)}>
+                      {/* Severity Badge */}
+                      <Badge status={mapSeverityBadge(alert.severity)} themeMode={mode}>
                         {alert.severity.toUpperCase()}
                       </Badge>
 
+                      {/* Status Badge */}
                       <Badge
+                        themeMode={mode}
                         status={
                           alert.status === 'resolved'
                             ? 'nominal'
@@ -425,39 +594,90 @@ export const AlertsPage: React.FC = () => {
                         {alert.status.toUpperCase()}
                       </Badge>
 
-                      <div className="flex items-center gap-1 text-xs font-mono text-slate-300">
-                        <User className="w-3.5 h-3.5 text-slate-400" />
+                      <div
+                        className={clsx(
+                          'flex items-center gap-1 text-xs font-semibold',
+                          isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-300'
+                        )}
+                      >
+                        <User className={clsx('w-3.5 h-3.5', isPaper ? 'text-[#ff4d4d]' : 'text-cyan-400')} />
                         <span>{astronautLabel}</span>
                       </div>
 
-                      <div className="flex items-center gap-1 text-xs font-mono text-slate-400">
-                        <Radio className="w-3 h-3 text-cyan-400" />
+                      <div
+                        className={clsx(
+                          'flex items-center gap-1 text-xs',
+                          isSketch ? 'font-sketch-hand text-sm opacity-80' : 'font-mono text-slate-400'
+                        )}
+                      >
+                        <Radio className={clsx('w-3 h-3', isPaper ? 'text-[#2d5da1]' : 'text-cyan-400')} />
                         <span>{missionLabel}</span>
                       </div>
 
-                      <div className="flex items-center gap-1 text-[11px] font-mono text-slate-500">
+                      <div
+                        className={clsx(
+                          'flex items-center gap-1 text-[11px]',
+                          isSketch ? 'font-sketch-hand text-xs opacity-75' : 'font-mono text-slate-500'
+                        )}
+                      >
                         <Clock className="w-3 h-3" />
                         <span>{new Date(alert.triggered_at).toLocaleTimeString()}</span>
                       </div>
                     </div>
 
-                    <h3 className="text-base font-bold text-white flex items-center gap-2">
-                      {(alert.severity === 'critical' || alert.severity === 'high') && (
-                        <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                    {/* Alert Title */}
+                    <h3
+                      className={clsx(
+                        'font-bold flex items-center gap-2',
+                        isSketch ? 'font-display-kalam text-xl' : 'text-base font-sans text-white',
+                        isPaper ? 'text-[#2d2d2d]' : 'text-white'
                       )}
-                      {alert.title}
+                    >
+                      {(alert.severity === 'critical' || alert.severity === 'high') && (
+                        <AlertTriangle
+                          className={clsx('w-5 h-5 shrink-0', isPaper ? 'text-[#ff4d4d]' : 'text-rose-400')}
+                        />
+                      )}
+                      <span>{alert.title}</span>
                     </h3>
 
-                    <p className="text-xs text-slate-300 font-sans leading-relaxed">{alert.description}</p>
+                    {/* Alert Description */}
+                    <p
+                      className={clsx(
+                        'text-xs leading-relaxed',
+                        isSketch ? 'font-sketch-hand text-base' : 'font-sans text-slate-300',
+                        isPaper ? 'text-[#2d2d2d]/90' : isDark ? 'text-white/90' : 'text-slate-300'
+                      )}
+                    >
+                      {alert.description}
+                    </p>
 
                     {/* Operational History: Acknowledgements and Escalations */}
                     {alert.acknowledgements && alert.acknowledgements.length > 0 && (
-                      <div className="mt-2 p-2 rounded bg-[#050B14] border border-[#1E3A5F] text-[11px] font-mono space-y-1 text-cyan-300">
+                      <div
+                        style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                        className={clsx(
+                          'mt-2.5 p-2.5 text-[11px] space-y-1 transition-all',
+                          isSketch
+                            ? isPaper
+                              ? 'bg-white/80 border-2 border-[#2d2d2d]/30 text-[#2d2d2d] font-sketch-hand text-xs shadow-sm'
+                              : 'bg-black/60 border-2 border-[#FF4D00]/50 text-white font-sketch-hand text-xs shadow-sm'
+                            : 'rounded bg-[#050B14] border border-[#1E3A5F] text-cyan-300 font-mono'
+                        )}
+                      >
                         {alert.acknowledgements.map((ack) => (
                           <div key={ack.id} className="flex items-start gap-1.5">
-                            <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                            <Check
+                              className={clsx(
+                                'w-3.5 h-3.5 shrink-0 mt-0.5',
+                                isPaper ? 'text-emerald-700' : 'text-cyan-400'
+                              )}
+                            />
                             <span>
-                              <strong className="text-white">{ack.user?.name || 'Operator'}:</strong> {ack.action_taken} ({new Date(ack.acknowledged_at).toLocaleTimeString()})
+                              <strong className={isPaper ? 'text-[#2d2d2d]' : 'text-white'}>
+                                {ack.user?.name || 'Operator'}:
+                              </strong>{' '}
+                              {ack.action_taken} ({new Date(ack.acknowledged_at).toLocaleTimeString()})
                             </span>
                           </div>
                         ))}
@@ -465,12 +685,31 @@ export const AlertsPage: React.FC = () => {
                     )}
 
                     {alert.escalations && alert.escalations.length > 0 && (
-                      <div className="mt-2 p-2 rounded bg-rose-950/30 border border-rose-500/40 text-[11px] font-mono space-y-1 text-rose-300">
+                      <div
+                        style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                        className={clsx(
+                          'mt-2.5 p-2.5 text-[11px] space-y-1 transition-all',
+                          isSketch
+                            ? isPaper
+                              ? 'bg-rose-100/90 border-2 border-rose-800/40 text-rose-950 font-sketch-hand text-xs shadow-sm'
+                              : 'bg-rose-950/60 border-2 border-[#FF4D00] text-rose-200 font-sketch-hand text-xs shadow-sm'
+                            : 'rounded bg-rose-950/30 border border-rose-500/40 text-rose-300 font-mono'
+                        )}
+                      >
                         {alert.escalations.map((esc) => (
                           <div key={esc.id} className="flex items-start gap-1.5">
-                            <ArrowUpRight className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                            <ArrowUpRight
+                              className={clsx(
+                                'w-3.5 h-3.5 shrink-0 mt-0.5',
+                                isPaper ? 'text-[#ff4d4d]' : 'text-rose-400'
+                              )}
+                            />
                             <span>
-                              <strong className="text-rose-200">Escalated to {esc.escalated_to_role.replace('_', ' ').toUpperCase()} by {esc.user?.name || 'Officer'}:</strong> {esc.reason} ({new Date(esc.escalated_at).toLocaleTimeString()})
+                              <strong className={isPaper ? 'text-rose-900 font-bold' : 'text-rose-200'}>
+                                Escalated to {esc.escalated_to_role.replace('_', ' ').toUpperCase()} by{' '}
+                                {esc.user?.name || 'Officer'}:
+                              </strong>{' '}
+                              {esc.reason} ({new Date(esc.escalated_at).toLocaleTimeString()})
                             </span>
                           </div>
                         ))}
@@ -478,8 +717,13 @@ export const AlertsPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Multi-state Action Controls */}
-                  <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-[#1E3A5F]">
+                  {/* Multi-state Tactile Action Controls */}
+                  <div
+                    className={clsx(
+                      'flex flex-wrap items-center gap-2 shrink-0 pt-2 md:pt-0',
+                      !isSketch && 'border-t md:border-t-0 border-[#1E3A5F]'
+                    )}
+                  >
                     {alert.status === 'triggered' && (
                       <>
                         <Button
@@ -487,7 +731,15 @@ export const AlertsPage: React.FC = () => {
                           size="sm"
                           onClick={() => handleOpenDismiss(alert)}
                           disabled={isActionBusy}
-                          className="text-xs"
+                          style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                          className={clsx(
+                            'text-xs transition-all',
+                            isSketch && (
+                              isPaper
+                                ? 'bg-white hover:bg-stone-100 text-[#2d2d2d] border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold'
+                                : 'bg-[#0c0c10] hover:bg-[#1c1c24] text-white border-2 border-[#FF4D00] sketch-btn-orange font-sketch-hand font-bold'
+                            )
+                          )}
                           title="Dismiss as sensor artifact or false positive"
                         >
                           <XCircle className="w-3.5 h-3.5" /> Dismiss
@@ -497,7 +749,15 @@ export const AlertsPage: React.FC = () => {
                           size="sm"
                           onClick={() => handleOpenEscalate(alert)}
                           disabled={isActionBusy}
-                          className="text-xs text-rose-300 border-rose-500/50 hover:bg-rose-950/40"
+                          style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                          className={clsx(
+                            'text-xs transition-all',
+                            isSketch
+                              ? isPaper
+                                ? 'bg-[#ff4d4d] hover:bg-[#e03a3a] text-white border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold'
+                                : 'bg-[#FF4D00] hover:bg-[#e64500] text-black border-2 border-white sketch-btn-orange font-sketch-hand font-bold'
+                              : 'text-rose-300 border-rose-500/50 hover:bg-rose-950/40'
+                          )}
                         >
                           <ShieldAlert className="w-3.5 h-3.5" /> Escalate
                         </Button>
@@ -507,7 +767,15 @@ export const AlertsPage: React.FC = () => {
                           onClick={() => handleOpenAcknowledge(alert)}
                           disabled={isActionBusy}
                           isLoading={isActionBusy}
-                          className="text-xs"
+                          style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                          className={clsx(
+                            'text-xs transition-all',
+                            isSketch && (
+                              isPaper
+                                ? 'bg-amber-300 hover:bg-amber-400 text-[#2d2d2d] border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold'
+                                : 'bg-amber-400 hover:bg-amber-300 text-black border-2 border-white sketch-btn-orange font-sketch-hand font-bold'
+                            )
+                          )}
                         >
                           <Check className="w-3.5 h-3.5" /> Acknowledge Alert
                         </Button>
@@ -521,7 +789,15 @@ export const AlertsPage: React.FC = () => {
                           size="sm"
                           onClick={() => handleOpenDismiss(alert)}
                           disabled={isActionBusy}
-                          className="text-xs"
+                          style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                          className={clsx(
+                            'text-xs',
+                            isSketch && (
+                              isPaper
+                                ? 'bg-white text-[#2d2d2d] border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold'
+                                : 'bg-[#0c0c10] text-white border-2 border-[#FF4D00] sketch-btn-orange font-sketch-hand font-bold'
+                            )
+                          )}
                         >
                           <XCircle className="w-3.5 h-3.5" /> Dismiss
                         </Button>
@@ -530,7 +806,15 @@ export const AlertsPage: React.FC = () => {
                           size="sm"
                           onClick={() => handleOpenEscalate(alert)}
                           disabled={isActionBusy}
-                          className="text-xs text-amber-300 border-amber-500/40 hover:bg-amber-950/40"
+                          style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                          className={clsx(
+                            'text-xs',
+                            isSketch
+                              ? isPaper
+                                ? 'bg-rose-200 hover:bg-rose-300 text-rose-950 border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold'
+                                : 'bg-[#18110c] text-rose-300 border-2 border-[#FF4D00] sketch-btn-orange font-sketch-hand font-bold'
+                              : 'text-amber-300 border-amber-500/40 hover:bg-amber-950/40'
+                          )}
                         >
                           <ShieldAlert className="w-3.5 h-3.5" /> Escalate to Director
                         </Button>
@@ -540,7 +824,15 @@ export const AlertsPage: React.FC = () => {
                           onClick={() => handleOpenResolve(alert)}
                           disabled={isActionBusy}
                           isLoading={isActionBusy}
-                          className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white"
+                          style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                          className={clsx(
+                            'text-xs',
+                            isSketch
+                              ? isPaper
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold'
+                                : 'bg-emerald-500 hover:bg-emerald-400 text-black border-2 border-white sketch-btn-orange font-sketch-hand font-bold'
+                              : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                          )}
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" /> Mark Resolved
                         </Button>
@@ -554,7 +846,15 @@ export const AlertsPage: React.FC = () => {
                           size="sm"
                           onClick={() => handleOpenDismiss(alert)}
                           disabled={isActionBusy}
-                          className="text-xs"
+                          style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                          className={clsx(
+                            'text-xs',
+                            isSketch && (
+                              isPaper
+                                ? 'bg-white text-[#2d2d2d] border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold'
+                                : 'bg-[#0c0c10] text-white border-2 border-[#FF4D00] sketch-btn-orange font-sketch-hand font-bold'
+                            )
+                          )}
                         >
                           <XCircle className="w-3.5 h-3.5" /> Dismiss
                         </Button>
@@ -564,7 +864,15 @@ export const AlertsPage: React.FC = () => {
                           onClick={() => handleOpenResolve(alert)}
                           disabled={isActionBusy}
                           isLoading={isActionBusy}
-                          className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white"
+                          style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                          className={clsx(
+                            'text-xs',
+                            isSketch
+                              ? isPaper
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold'
+                                : 'bg-emerald-500 hover:bg-emerald-400 text-black border-2 border-white sketch-btn-orange font-sketch-hand font-bold'
+                              : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                          )}
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" /> Resolve Incident
                         </Button>
@@ -572,19 +880,39 @@ export const AlertsPage: React.FC = () => {
                     )}
 
                     {alert.status === 'resolved' && (
-                      <span className="text-xs font-mono text-emerald-400 flex items-center gap-1 font-bold px-2 py-1 rounded bg-emerald-950/30 border border-emerald-500/30">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" /> RESOLVED & ARCHIVED
+                      <span
+                        style={isSketch ? getWobblyStyle('wobblyTag') : undefined}
+                        className={clsx(
+                          'text-xs flex items-center gap-1 font-bold px-3 py-1 select-none',
+                          isSketch
+                            ? isPaper
+                              ? 'bg-emerald-100 text-emerald-950 border-2 border-[#2d2d2d] font-sketch-hand'
+                              : 'bg-emerald-950/80 text-emerald-300 border-2 border-emerald-400 font-sketch-hand'
+                            : 'font-mono text-emerald-400 rounded bg-emerald-950/30 border border-emerald-500/30'
+                        )}
+                      >
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> RESOLVED & ARCHIVED
                       </span>
                     )}
 
                     {alert.status === 'dismissed' && (
-                      <span className="text-xs font-mono text-slate-400 flex items-center gap-1 font-bold px-2 py-1 rounded bg-[#050B14] border border-slate-700">
+                      <span
+                        style={isSketch ? getWobblyStyle('wobblyTag') : undefined}
+                        className={clsx(
+                          'text-xs flex items-center gap-1 font-bold px-3 py-1 select-none',
+                          isSketch
+                            ? isPaper
+                              ? 'bg-[#e5e0d8] text-[#2d2d2d] border-2 border-[#2d2d2d] font-sketch-hand'
+                              : 'bg-black text-white/70 border-2 border-white/50 font-sketch-hand'
+                            : 'font-mono text-slate-400 rounded bg-[#050B14] border border-slate-700'
+                        )}
+                      >
                         <XCircle className="w-4 h-4 text-slate-500" /> DISMISSED
                       </span>
                     )}
                   </div>
                 </div>
-              </Card>
+              </div>
             );
           })}
         </div>
@@ -593,34 +921,87 @@ export const AlertsPage: React.FC = () => {
       {/* ACKNOWLEDGE MODAL */}
       {acknowledgingAlert && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-lg border-cyan-500/50 shadow-[0_0_30px_rgba(0,229,255,0.25)]">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E3A5F] mb-4">
-              <h3 className="text-base font-mono font-bold text-white flex items-center gap-2">
-                <Check className="w-5 h-5 text-cyan-400" />
+          <Card
+            themeMode={mode}
+            radius="wobblyMd"
+            decoration={isSketch ? 'tape' : 'none'}
+            className={clsx(
+              'w-full max-w-lg transition-all',
+              !isSketch && 'border-cyan-500/50 shadow-[0_0_30px_rgba(0,229,255,0.25)]'
+            )}
+          >
+            <div
+              className={clsx(
+                'flex items-center justify-between pb-3 border-b mb-4',
+                isSketch
+                  ? isPaper
+                    ? 'border-dashed border-[#2d2d2d]/30'
+                    : 'border-dashed border-[#FF4D00]/40'
+                  : 'border-[#1E3A5F]'
+              )}
+            >
+              <h3
+                className={clsx(
+                  'font-bold flex items-center gap-2',
+                  isSketch ? 'font-display-kalam text-lg sm:text-xl' : 'text-base font-mono text-white',
+                  isPaper ? 'text-[#2d2d2d]' : 'text-white'
+                )}
+              >
+                <Check className="w-5 h-5 text-emerald-500" />
                 Acknowledge Alert [{acknowledgingAlert.alert_code}]
               </h3>
-              <Button variant="ghost" size="sm" onClick={() => setAcknowledgingAlert(null)}>
+              <button
+                type="button"
+                onClick={() => setAcknowledgingAlert(null)}
+                className="text-stone-400 hover:text-stone-600 p-1 cursor-pointer"
+              >
                 <X className="w-4 h-4" />
-              </Button>
+              </button>
             </div>
 
-            <p className="text-xs text-slate-300 font-mono mb-2">
-              <strong className="text-white">{acknowledgingAlert.title}</strong>
+            <p
+              className={clsx(
+                'text-xs mb-2',
+                isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-300'
+              )}
+            >
+              <strong className={isPaper ? 'text-[#ff4d4d]' : 'text-white'}>
+                {acknowledgingAlert.title}
+              </strong>
             </p>
 
-            <label className="block text-xs font-mono text-slate-400 mb-1.5 font-bold">
+            <label
+              className={clsx(
+                'block text-xs mb-1.5 font-bold',
+                isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-400'
+              )}
+            >
               OPERATIONAL ACTION TAKEN / CLINICAL REMARK:
             </label>
             <textarea
               value={ackActionTaken}
               onChange={(e) => setAckActionTaken(e.target.value)}
               rows={3}
-              className="w-full p-3 rounded-lg bg-[#050B14] border border-[#1E3A5F] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono mb-4"
+              style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+              className={clsx(
+                'w-full p-3 text-xs mb-4 focus:outline-none transition-all',
+                isSketch
+                  ? isPaper
+                    ? 'bg-[#fdfbf7] border-2 border-[#2d2d2d] text-[#2d2d2d] font-sketch-hand text-base shadow-[2px_2px_0px_0px_#2d2d2d]'
+                    : 'bg-[#050B14] border-2 border-[#FF4D00] text-white font-sketch-hand text-base shadow-[2px_2px_0px_0px_#FF4D00]'
+                  : 'rounded-lg bg-[#050B14] border border-[#1E3A5F] text-white placeholder-slate-500 focus:border-cyan-400 font-mono'
+              )}
               placeholder="Detail verification steps performed..."
             />
 
             <div className="flex justify-end gap-2.5">
-              <Button variant="ghost" size="sm" onClick={() => setAcknowledgingAlert(null)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAcknowledgingAlert(null)}
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(isSketch && 'font-sketch-hand font-bold text-sm')}
+              >
                 Cancel
               </Button>
               <Button
@@ -628,6 +1009,14 @@ export const AlertsPage: React.FC = () => {
                 size="sm"
                 onClick={handleConfirmAcknowledge}
                 isLoading={actionLoadingId === acknowledgingAlert.id}
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  isSketch && (
+                    isPaper
+                      ? 'bg-amber-300 hover:bg-amber-400 text-[#2d2d2d] border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold text-sm'
+                      : 'bg-amber-400 hover:bg-amber-300 text-black border-2 border-white sketch-btn-orange font-sketch-hand font-bold text-sm'
+                  )
+                )}
               >
                 Confirm Acknowledgment
               </Button>
@@ -639,30 +1028,77 @@ export const AlertsPage: React.FC = () => {
       {/* ESCALATE MODAL */}
       {escalatingAlert && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-lg border-rose-500/50 shadow-[0_0_30px_rgba(244,63,94,0.25)]">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E3A5F] mb-4">
-              <h3 className="text-base font-mono font-bold text-white flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-rose-400" />
+          <Card
+            themeMode={mode}
+            radius="wobblyMd"
+            decoration={isSketch ? 'tape' : 'none'}
+            className={clsx(
+              'w-full max-w-lg transition-all',
+              !isSketch && 'border-rose-500/50 shadow-[0_0_30px_rgba(244,63,94,0.25)]'
+            )}
+          >
+            <div
+              className={clsx(
+                'flex items-center justify-between pb-3 border-b mb-4',
+                isSketch
+                  ? isPaper
+                    ? 'border-dashed border-[#2d2d2d]/30'
+                    : 'border-dashed border-[#FF4D00]/40'
+                  : 'border-[#1E3A5F]'
+              )}
+            >
+              <h3
+                className={clsx(
+                  'font-bold flex items-center gap-2',
+                  isSketch ? 'font-display-kalam text-lg sm:text-xl' : 'text-base font-mono text-white',
+                  isPaper ? 'text-[#ff4d4d]' : 'text-rose-400'
+                )}
+              >
+                <ShieldAlert className="w-5 h-5 shrink-0" />
                 Escalate Incident [{escalatingAlert.alert_code}]
               </h3>
-              <Button variant="ghost" size="sm" onClick={() => setEscalatingAlert(null)}>
+              <button
+                type="button"
+                onClick={() => setEscalatingAlert(null)}
+                className="text-stone-400 hover:text-stone-600 p-1 cursor-pointer"
+              >
                 <X className="w-4 h-4" />
-              </Button>
+              </button>
             </div>
 
-            <p className="text-xs text-slate-300 font-mono mb-3">
-              <strong className="text-white">{escalatingAlert.title}</strong>
+            <p
+              className={clsx(
+                'text-xs mb-3',
+                isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-300'
+              )}
+            >
+              <strong className={isPaper ? 'text-[#ff4d4d]' : 'text-white'}>
+                {escalatingAlert.title}
+              </strong>
             </p>
 
-            <div className="space-y-3 mb-4">
+            <div className="space-y-3.5 mb-4">
               <div>
-                <label className="block text-xs font-mono text-slate-400 mb-1.5 font-bold">
+                <label
+                  className={clsx(
+                    'block text-xs mb-1.5 font-bold',
+                    isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-400'
+                  )}
+                >
                   ESCALATE TO COMMAND ROLE:
                 </label>
                 <select
                   value={escalateRole}
-                  onChange={(e) => setEscalateRole(e.target.value as any)}
-                  className="w-full p-2.5 rounded-lg bg-[#050B14] border border-[#1E3A5F] text-xs text-white font-mono focus:border-rose-400 focus:outline-none cursor-pointer"
+                  onChange={(e) => setEscalateRole(e.target.value as 'flight_surgeon' | 'mission_director' | 'medical_officer')}
+                  style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                  className={clsx(
+                    'w-full p-2.5 text-xs focus:outline-none cursor-pointer transition-all',
+                    isSketch
+                      ? isPaper
+                        ? 'bg-[#fdfbf7] border-2 border-[#2d2d2d] text-[#2d2d2d] font-sketch-hand text-base shadow-[2px_2px_0px_0px_#2d2d2d]'
+                        : 'bg-[#050B14] border-2 border-[#FF4D00] text-white font-sketch-hand text-base shadow-[2px_2px_0px_0px_#FF4D00]'
+                      : 'rounded-lg bg-[#050B14] border border-[#1E3A5F] text-white font-mono focus:border-rose-400'
+                  )}
                 >
                   <option value="flight_surgeon">Flight Surgeon (Clinical Command)</option>
                   <option value="mission_director">Mission Director (Flight Operations)</option>
@@ -671,21 +1107,40 @@ export const AlertsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-slate-400 mb-1.5 font-bold">
+                <label
+                  className={clsx(
+                    'block text-xs mb-1.5 font-bold',
+                    isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-400'
+                  )}
+                >
                   ESCALATION REASON & DIRECTIVE (MIN 5 CHARS):
                 </label>
                 <textarea
                   value={escalateReason}
                   onChange={(e) => setEscalateReason(e.target.value)}
                   rows={3}
-                  className="w-full p-3 rounded-lg bg-[#050B14] border border-[#1E3A5F] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-400 font-mono"
+                  style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                  className={clsx(
+                    'w-full p-3 text-xs focus:outline-none transition-all',
+                    isSketch
+                      ? isPaper
+                        ? 'bg-[#fdfbf7] border-2 border-[#2d2d2d] text-[#2d2d2d] font-sketch-hand text-base shadow-[2px_2px_0px_0px_#2d2d2d]'
+                        : 'bg-[#050B14] border-2 border-[#FF4D00] text-white font-sketch-hand text-base shadow-[2px_2px_0px_0px_#FF4D00]'
+                      : 'rounded-lg bg-[#050B14] border border-[#1E3A5F] text-white placeholder-slate-500 focus:border-rose-400 font-mono'
+                  )}
                   placeholder="Detail why anomaly requires senior commanding intervention..."
                 />
               </div>
             </div>
 
             <div className="flex justify-end gap-2.5">
-              <Button variant="ghost" size="sm" onClick={() => setEscalatingAlert(null)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setEscalatingAlert(null)}
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(isSketch && 'font-sketch-hand font-bold text-sm')}
+              >
                 Cancel
               </Button>
               <Button
@@ -694,6 +1149,14 @@ export const AlertsPage: React.FC = () => {
                 onClick={handleConfirmEscalate}
                 isLoading={actionLoadingId === escalatingAlert.id}
                 disabled={escalateReason.trim().length < 5}
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  isSketch && (
+                    isPaper
+                      ? 'bg-[#ff4d4d] hover:bg-[#e03a3a] text-white border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold text-sm'
+                      : 'bg-[#FF4D00] hover:bg-[#e64500] text-black border-2 border-white sketch-btn-orange font-sketch-hand font-bold text-sm'
+                  )
+                )}
               >
                 Submit Escalation
               </Button>
@@ -705,34 +1168,87 @@ export const AlertsPage: React.FC = () => {
       {/* RESOLVE MODAL */}
       {resolvingAlert && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-lg border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.25)]">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E3A5F] mb-4">
-              <h3 className="text-base font-mono font-bold text-white flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+          <Card
+            themeMode={mode}
+            radius="wobblyMd"
+            decoration={isSketch ? 'tape' : 'none'}
+            className={clsx(
+              'w-full max-w-lg transition-all',
+              !isSketch && 'border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.25)]'
+            )}
+          >
+            <div
+              className={clsx(
+                'flex items-center justify-between pb-3 border-b mb-4',
+                isSketch
+                  ? isPaper
+                    ? 'border-dashed border-[#2d2d2d]/30'
+                    : 'border-dashed border-[#FF4D00]/40'
+                  : 'border-[#1E3A5F]'
+              )}
+            >
+              <h3
+                className={clsx(
+                  'font-bold flex items-center gap-2',
+                  isSketch ? 'font-display-kalam text-lg sm:text-xl' : 'text-base font-mono text-white',
+                  isPaper ? 'text-[#2d2d2d]' : 'text-white'
+                )}
+              >
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                 Resolve Incident [{resolvingAlert.alert_code}]
               </h3>
-              <Button variant="ghost" size="sm" onClick={() => setResolvingAlert(null)}>
+              <button
+                type="button"
+                onClick={() => setResolvingAlert(null)}
+                className="text-stone-400 hover:text-stone-600 p-1 cursor-pointer"
+              >
                 <X className="w-4 h-4" />
-              </Button>
+              </button>
             </div>
 
-            <p className="text-xs text-slate-300 font-mono mb-2">
-              <strong className="text-white">{resolvingAlert.title}</strong>
+            <p
+              className={clsx(
+                'text-xs mb-2',
+                isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-300'
+              )}
+            >
+              <strong className={isPaper ? 'text-[#ff4d4d]' : 'text-white'}>
+                {resolvingAlert.title}
+              </strong>
             </p>
 
-            <label className="block text-xs font-mono text-slate-400 mb-1.5 font-bold">
+            <label
+              className={clsx(
+                'block text-xs mb-1.5 font-bold',
+                isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-400'
+              )}
+            >
               FINAL CLINICAL RESOLUTION PROTOCOL & LOG:
             </label>
             <textarea
               value={resolutionNotes}
               onChange={(e) => setResolutionNotes(e.target.value)}
               rows={3}
-              className="w-full p-3 rounded-lg bg-[#050B14] border border-[#1E3A5F] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400 font-mono mb-4"
+              style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+              className={clsx(
+                'w-full p-3 text-xs mb-4 focus:outline-none transition-all',
+                isSketch
+                  ? isPaper
+                    ? 'bg-[#fdfbf7] border-2 border-[#2d2d2d] text-[#2d2d2d] font-sketch-hand text-base shadow-[2px_2px_0px_0px_#2d2d2d]'
+                    : 'bg-[#050B14] border-2 border-[#FF4D00] text-white font-sketch-hand text-base shadow-[2px_2px_0px_0px_#FF4D00]'
+                  : 'rounded-lg bg-[#050B14] border border-[#1E3A5F] text-white placeholder-slate-500 focus:border-emerald-400 font-mono'
+              )}
               placeholder="State resolution confirmation, countermeasures administered, and vitals trend..."
             />
 
             <div className="flex justify-end gap-2.5">
-              <Button variant="ghost" size="sm" onClick={() => setResolvingAlert(null)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setResolvingAlert(null)}
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(isSketch && 'font-sketch-hand font-bold text-sm')}
+              >
                 Cancel
               </Button>
               <Button
@@ -740,7 +1256,14 @@ export const AlertsPage: React.FC = () => {
                 size="sm"
                 onClick={handleConfirmResolve}
                 isLoading={actionLoadingId === resolvingAlert.id}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white"
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  isSketch && (
+                    isPaper
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold text-sm'
+                      : 'bg-emerald-500 hover:bg-emerald-400 text-black border-2 border-white sketch-btn-orange font-sketch-hand font-bold text-sm'
+                  )
+                )}
               >
                 Confirm Incident Resolution
               </Button>
@@ -752,34 +1275,87 @@ export const AlertsPage: React.FC = () => {
       {/* DISMISS MODAL */}
       {dismissingAlert && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-lg border-slate-500/50 shadow-[0_0_30px_rgba(100,116,139,0.25)]">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E3A5F] mb-4">
-              <h3 className="text-base font-mono font-bold text-white flex items-center gap-2">
+          <Card
+            themeMode={mode}
+            radius="wobblyMd"
+            decoration={isSketch ? 'tape' : 'none'}
+            className={clsx(
+              'w-full max-w-lg transition-all',
+              !isSketch && 'border-slate-500/50 shadow-[0_0_30px_rgba(100,116,139,0.25)]'
+            )}
+          >
+            <div
+              className={clsx(
+                'flex items-center justify-between pb-3 border-b mb-4',
+                isSketch
+                  ? isPaper
+                    ? 'border-dashed border-[#2d2d2d]/30'
+                    : 'border-dashed border-[#FF4D00]/40'
+                  : 'border-[#1E3A5F]'
+              )}
+            >
+              <h3
+                className={clsx(
+                  'font-bold flex items-center gap-2',
+                  isSketch ? 'font-display-kalam text-lg sm:text-xl' : 'text-base font-mono text-white',
+                  isPaper ? 'text-[#2d2d2d]' : 'text-white'
+                )}
+              >
                 <XCircle className="w-5 h-5 text-slate-400" />
                 Dismiss Alert [{dismissingAlert.alert_code}]
               </h3>
-              <Button variant="ghost" size="sm" onClick={() => setDismissingAlert(null)}>
+              <button
+                type="button"
+                onClick={() => setDismissingAlert(null)}
+                className="text-stone-400 hover:text-stone-600 p-1 cursor-pointer"
+              >
                 <X className="w-4 h-4" />
-              </Button>
+              </button>
             </div>
 
-            <p className="text-xs text-slate-300 font-mono mb-2">
-              <strong className="text-white">{dismissingAlert.title}</strong>
+            <p
+              className={clsx(
+                'text-xs mb-2',
+                isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-300'
+              )}
+            >
+              <strong className={isPaper ? 'text-[#ff4d4d]' : 'text-white'}>
+                {dismissingAlert.title}
+              </strong>
             </p>
 
-            <label className="block text-xs font-mono text-slate-400 mb-1.5 font-bold">
+            <label
+              className={clsx(
+                'block text-xs mb-1.5 font-bold',
+                isSketch ? 'font-sketch-hand text-sm' : 'font-mono text-slate-400'
+              )}
+            >
               DISMISSAL RATIONALE (SENSOR ARTIFACT / FALSE POSITIVE):
             </label>
             <textarea
               value={dismissReason}
               onChange={(e) => setDismissReason(e.target.value)}
               rows={3}
-              className="w-full p-3 rounded-lg bg-[#050B14] border border-[#1E3A5F] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-slate-400 font-mono mb-4"
+              style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+              className={clsx(
+                'w-full p-3 text-xs mb-4 focus:outline-none transition-all',
+                isSketch
+                  ? isPaper
+                    ? 'bg-[#fdfbf7] border-2 border-[#2d2d2d] text-[#2d2d2d] font-sketch-hand text-base shadow-[2px_2px_0px_0px_#2d2d2d]'
+                    : 'bg-[#050B14] border-2 border-[#FF4D00] text-white font-sketch-hand text-base shadow-[2px_2px_0px_0px_#FF4D00]'
+                  : 'rounded-lg bg-[#050B14] border border-[#1E3A5F] text-white placeholder-slate-500 focus:border-slate-400 font-mono'
+              )}
               placeholder="State reason for discarding this telemetry alert..."
             />
 
             <div className="flex justify-end gap-2.5">
-              <Button variant="ghost" size="sm" onClick={() => setDismissingAlert(null)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDismissingAlert(null)}
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(isSketch && 'font-sketch-hand font-bold text-sm')}
+              >
                 Cancel
               </Button>
               <Button
@@ -787,6 +1363,14 @@ export const AlertsPage: React.FC = () => {
                 size="sm"
                 onClick={handleConfirmDismiss}
                 isLoading={actionLoadingId === dismissingAlert.id}
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  isSketch && (
+                    isPaper
+                      ? 'bg-stone-200 hover:bg-stone-300 text-[#2d2d2d] border-2 border-[#2d2d2d] sketch-btn font-sketch-hand font-bold text-sm'
+                      : 'bg-zinc-800 hover:bg-zinc-700 text-white border-2 border-white/40 sketch-btn font-sketch-hand font-bold text-sm'
+                  )
+                )}
               >
                 Dismiss Alert
               </Button>

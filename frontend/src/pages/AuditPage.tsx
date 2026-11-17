@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { clsx } from 'clsx';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -18,8 +19,21 @@ import {
 } from 'lucide-react';
 import { clinicalApi } from '../api/clinicalApi';
 import { AuditLog, AuditVerificationResult } from '../types/clinical.types';
+import { useThemeStore } from '../store/themeStore';
+import {
+  getWobblyStyle,
+  Tape,
+  PushPin,
+  SquiggleUnderline,
+  SketchBadge,
+} from '../components/sketchbook';
 
 export const AuditPage: React.FC = () => {
+  const { mode } = useThemeStore();
+  const isPaper = mode === 'paper';
+  const isDark = mode === 'dark';
+  const isSketch = isPaper || isDark;
+
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [verification, setVerification] = useState<AuditVerificationResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -122,15 +136,62 @@ export const AuditPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Mission Flight Ledger Header */}
+      <div
+        style={isSketch ? getWobblyStyle('wobblyMd') : undefined}
+        className={clsx(
+          'relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 transition-all',
+          isPaper
+            ? 'bg-white text-[#2d2d2d] border-[3px] border-[#2d2d2d] sketch-shadow-lg'
+            : isDark
+              ? 'bg-[#0c0c10] text-white border-[3px] border-[#FF4D00] sketch-shadow-orange-lg'
+              : ''
+        )}
+      >
+        {isSketch && (
+          <div className="absolute -top-3.5 left-10 z-10">
+            <Tape isDark={isDark} />
+          </div>
+        )}
+
         <div>
-          <h1 className="text-2xl font-mono font-bold text-white tracking-wide flex items-center gap-2.5">
-            <ShieldCheck className="w-6 h-6 text-emerald-400" />
-            IMMUTABLE SHA-256 AUDIT LEDGER
-          </h1>
-          <p className="text-xs text-slate-400 font-mono mt-1">
-            FORENSIC CRYPTOGRAPHIC HASH CHAIN · NON-REPUDIATION OF ALL CLINICAL & MISSION OPERATIONS
+          <div className="flex items-center gap-2.5">
+            <div
+              style={isSketch ? getWobblyStyle('wobblyCircle') : undefined}
+              className={clsx(
+                'w-9 h-9 flex items-center justify-center border transition-all',
+                isPaper
+                  ? 'bg-emerald-100 border-2 border-[#2d2d2d] text-emerald-900'
+                  : isDark
+                    ? 'bg-emerald-950/80 border-2 border-emerald-400 text-emerald-400'
+                    : 'rounded-lg bg-emerald-950 border-emerald-500/50 text-emerald-400'
+              )}
+            >
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h1
+                className={clsx(
+                  'text-2xl font-bold tracking-wide',
+                  isSketch ? 'font-display-kalam text-2xl sm:text-3xl' : 'font-mono text-white'
+                )}
+              >
+                IMMUTABLE SHA-256 AUDIT LEDGER
+              </h1>
+              {isSketch && (
+                <div className="w-64 text-emerald-500">
+                  <SquiggleUnderline />
+                </div>
+              )}
+            </div>
+          </div>
+          <p
+            className={clsx(
+              'text-xs mt-1',
+              isSketch ? 'font-sketch-hand text-sm font-semibold opacity-80' : 'font-mono text-slate-400'
+            )}
+          >
+            FORENSIC CRYPTOGRAPHIC HASH CHAIN · NON-REPUDIATION OF ALL CLINICAL &amp; MISSION OPERATIONS
           </p>
         </div>
 
@@ -140,7 +201,15 @@ export const AuditPage: React.FC = () => {
             size="sm"
             onClick={handleManualRefresh}
             isLoading={isRefreshing}
-            className="text-xs gap-1.5"
+            style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+            className={clsx(
+              'text-xs gap-1.5 font-bold',
+              isSketch
+                ? isDark
+                  ? 'bg-black text-[#FF4D00] border-2 border-[#FF4D00] sketch-btn-orange font-sketch-hand'
+                  : 'bg-white text-[#2d2d2d] border-2 border-[#2d2d2d] sketch-btn font-sketch-hand'
+                : ''
+            )}
             title="Refresh Ledger"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -152,7 +221,15 @@ export const AuditPage: React.FC = () => {
             size="sm"
             onClick={handleVerifyChain}
             isLoading={isVerifying}
-            className="text-xs gap-2 bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+            style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+            className={clsx(
+              'text-xs gap-2 font-bold',
+              isSketch
+                ? isDark
+                  ? 'bg-emerald-500 text-black border-2 border-white sketch-btn-orange font-sketch-hand px-4'
+                  : 'bg-emerald-600 text-white border-2 border-[#2d2d2d] sketch-btn font-sketch-hand px-4'
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+            )}
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isVerifying ? 'animate-spin' : ''}`} />
             Verify Hash Chain Integrity
@@ -160,22 +237,48 @@ export const AuditPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Cryptographic Integrity Verification Banner */}
+      {/* Cryptographic Integrity Verification Banner - Flight Ledger Certificate */}
       {verification && (
         <div
-          className={`p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all shadow-lg ${
-            verification.is_valid
-              ? 'bg-emerald-950/30 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)]'
-              : 'bg-rose-950/40 border-rose-500/60 shadow-[0_0_20px_rgba(244,63,94,0.25)]'
-          }`}
+          style={isSketch ? getWobblyStyle('wobblyMd') : undefined}
+          className={clsx(
+            'relative p-4 border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all shadow-lg',
+            isPaper
+              ? verification.is_valid
+                ? 'bg-emerald-50 text-emerald-950 border-[3px] border-[#2d2d2d] sketch-shadow'
+                : 'bg-rose-50 text-rose-950 border-[3px] border-[#2d2d2d] sketch-shadow'
+              : isDark
+                ? verification.is_valid
+                  ? 'bg-[#0c0c10] text-white border-[3px] border-emerald-400 sketch-shadow-orange'
+                  : 'bg-[#0c0c10] text-white border-[3px] border-rose-500 sketch-shadow-orange'
+                : verification.is_valid
+                  ? 'rounded-xl bg-emerald-950/30 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.15)]'
+                  : 'rounded-xl bg-rose-950/40 border-rose-500/60 shadow-[0_0_20px_rgba(244,63,94,0.25)]'
+          )}
         >
+          {isSketch && (
+            <div className="absolute -top-2.5 right-6 z-10">
+              <PushPin isDark={isDark} />
+            </div>
+          )}
+
           <div className="flex items-center gap-3.5">
             <div
-              className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 ${
-                verification.is_valid
-                  ? 'bg-emerald-950 border-emerald-500/60 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.4)]'
-                  : 'bg-rose-950 border-rose-500 text-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.4)]'
-              }`}
+              style={isSketch ? getWobblyStyle('wobblyCircle') : undefined}
+              className={clsx(
+                'w-10 h-10 border flex items-center justify-center shrink-0',
+                isPaper
+                  ? verification.is_valid
+                    ? 'bg-emerald-200 border-2 border-[#2d2d2d] text-emerald-950'
+                    : 'bg-rose-200 border-2 border-[#2d2d2d] text-rose-950'
+                  : isDark
+                    ? verification.is_valid
+                      ? 'bg-emerald-950 border-2 border-emerald-400 text-emerald-400'
+                      : 'bg-rose-950 border-2 border-rose-500 text-rose-400'
+                    : verification.is_valid
+                      ? 'rounded-lg bg-emerald-950 border-emerald-500/60 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.4)]'
+                      : 'rounded-lg bg-rose-950 border-rose-500 text-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.4)]'
+              )}
             >
               {verification.is_valid ? (
                 <CheckCircle2 className="w-6 h-6" />
@@ -185,18 +288,38 @@ export const AuditPage: React.FC = () => {
             </div>
 
             <div className="space-y-0.5">
-              <h4 className="text-sm font-mono font-bold text-white flex items-center gap-2">
+              <h4
+                className={clsx(
+                  'text-sm font-bold flex items-center gap-2 flex-wrap',
+                  isSketch ? 'font-display-kalam text-base' : 'font-mono text-white'
+                )}
+              >
                 <span>
                   {verification.is_valid
                     ? 'CRYPTOGRAPHIC INTEGRITY: 100% SECURE & UNBROKEN'
                     : 'CRYPTOGRAPHIC INTEGRITY: INTEGRITY COMPROMISED'}
                 </span>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#050B14] border border-current text-emerald-400">
+                <span
+                  style={isSketch ? getWobblyStyle('wobblyTag') : undefined}
+                  className={clsx(
+                    'text-[11px] px-2 py-0.5 border font-bold',
+                    isPaper
+                      ? 'bg-emerald-100 text-emerald-900 border-[#2d2d2d] font-sketch-hand'
+                      : isDark
+                        ? 'bg-black text-emerald-400 border-emerald-400 font-sketch-hand'
+                        : 'font-mono rounded bg-[#050B14] text-emerald-400 border-current'
+                  )}
+                >
                   {verification.chain_status}
                 </span>
               </h4>
 
-              <p className="text-xs text-slate-300 font-mono">
+              <p
+                className={clsx(
+                  'text-xs leading-relaxed',
+                  isSketch ? 'font-sketch-hand text-sm opacity-90' : 'text-slate-300 font-mono'
+                )}
+              >
                 {verification.is_valid
                   ? `All ${verification.verified_records} of ${verification.total_records} consecutive blocks mathematically chained via SHA-256 pointer recursion. Zero payload tampering detected.`
                   : `Integrity failure: ${verification.failure_reason || 'Tampering detected at block #' + verification.compromised_at_id}`}
@@ -204,42 +327,90 @@ export const AuditPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 font-mono text-xs shrink-0">
+          <div
+            className={clsx(
+              'flex items-center gap-3 text-xs shrink-0',
+              isSketch ? 'font-sketch-hand text-sm' : 'font-mono'
+            )}
+          >
             <div className="text-right">
-              <span className="text-slate-500 block text-[10px]">VERIFIED AT</span>
-              <span className="text-slate-300">
+              <span className="opacity-70 block text-[10px]">VERIFIED AT</span>
+              <span className="font-bold">
                 {new Date(verification.verified_at).toLocaleTimeString()}
               </span>
             </div>
-            <Badge status={verification.is_valid ? 'nominal' : 'critical'}>
-              {verification.is_valid ? 'GENESIS VERIFIED' : 'TAMPER DETECTED'}
-            </Badge>
+            {isSketch ? (
+              <SketchBadge
+                variant={verification.is_valid ? 'nominal' : 'critical'}
+                mode={mode}
+              >
+                {verification.is_valid ? 'GENESIS VERIFIED' : 'TAMPER DETECTED'}
+              </SketchBadge>
+            ) : (
+              <Badge status={verification.is_valid ? 'nominal' : 'critical'}>
+                {verification.is_valid ? 'GENESIS VERIFIED' : 'TAMPER DETECTED'}
+              </Badge>
+            )}
           </div>
         </div>
       )}
 
       {/* Error Alert */}
       {errorMessage && (
-        <div className="p-3.5 rounded-lg bg-rose-950/40 border border-rose-500/50 text-rose-300 text-xs font-mono flex items-center gap-2">
+        <div
+          style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+          className={clsx(
+            'p-3.5 border text-xs flex items-center gap-2',
+            isPaper
+              ? 'bg-rose-100 text-rose-950 border-2 border-[#2d2d2d] font-sketch-hand'
+              : isDark
+                ? 'bg-rose-950/60 text-rose-300 border-2 border-rose-500 font-sketch-hand'
+                : 'rounded-lg bg-rose-950/40 border-rose-500/50 text-rose-300 font-mono'
+          )}
+        >
           <AlertOctagon className="w-4 h-4 shrink-0 text-rose-400" />
           <span>{errorMessage}</span>
         </div>
       )}
 
-      {/* Filter Bar */}
-      <Card className="border-[#1E3A5F] p-4 bg-[#0B132B]/60">
+      {/* Filter Bar - Technical Ruled Ledger Section */}
+      <Card
+        themeMode={mode}
+        className={clsx(
+          'p-4 transition-all',
+          !isSketch && 'border-[#1E3A5F] bg-[#0B132B]/60'
+        )}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs font-mono text-cyan-400">
-            <Filter className="w-4 h-4 text-cyan-400" />
-            <span className="font-bold">AUDIT TRAIL EVENT FILTER:</span>
+          <div
+            className={clsx(
+              'flex items-center gap-2 text-xs font-bold',
+              isPaper ? 'text-[#ff4d00] font-sketch-hand text-sm' : isDark ? 'text-[#FF4D00] font-sketch-hand text-sm' : 'font-mono text-cyan-400'
+            )}
+          >
+            <Filter className="w-4 h-4 text-current" />
+            <span>AUDIT TRAIL EVENT FILTER:</span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono">
-            <span className="text-slate-400">Event Class:</span>
+          <div
+            className={clsx(
+              'flex items-center gap-2 text-xs',
+              isSketch ? 'font-sketch-hand text-sm' : 'font-mono'
+            )}
+          >
+            <span className="opacity-75 font-bold">Event Class:</span>
             <select
               value={selectedEventType}
               onChange={(e) => setSelectedEventType(e.target.value)}
-              className="bg-[#050B14] border border-[#1E3A5F] rounded px-3 py-1 text-xs text-white font-mono focus:border-cyan-400 focus:outline-none cursor-pointer"
+              style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+              className={clsx(
+                'px-3 py-1 text-xs focus:outline-none border cursor-pointer',
+                isPaper
+                  ? 'bg-[#fdfbf7] border-2 border-[#2d2d2d] text-[#2d2d2d] font-sketch-hand text-sm'
+                  : isDark
+                    ? 'bg-black border-2 border-[#FF4D00] text-white font-sketch-hand text-sm'
+                    : 'rounded bg-[#050B14] border-[#1E3A5F] text-white font-mono focus:border-cyan-400'
+              )}
             >
               <option value="all">All Events ({logs.length})</option>
               <option value="system_genesis">System Genesis</option>
@@ -258,7 +429,7 @@ export const AuditPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* Main Audit Block Chain */}
+      {/* Main Audit Block Chain - Immutable Mission Flight Ledger Logbook */}
       {isLoading ? (
         <div className="py-20 text-center space-y-3">
           <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mx-auto" />
@@ -267,10 +438,32 @@ export const AuditPage: React.FC = () => {
           </p>
         </div>
       ) : logs.length === 0 ? (
-        <Card className="border-[#1E3A5F] text-center py-16">
-          <ShieldCheck className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <h3 className="text-sm font-mono font-bold text-white">NO AUDIT LOGS RECORDED</h3>
-          <p className="text-xs text-slate-400 font-mono mt-1">
+        <Card
+          themeMode={mode}
+          className={clsx(
+            'text-center py-16 border',
+            isPaper
+              ? 'bg-white border-2 border-[#2d2d2d]'
+              : isDark
+                ? 'bg-[#0c0c10] border-2 border-[#FF4D00]'
+                : 'border-[#1E3A5F]'
+          )}
+        >
+          <ShieldCheck className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+          <h3
+            className={clsx(
+              'text-sm font-bold',
+              isSketch ? 'font-display-kalam text-lg' : 'font-mono text-white'
+            )}
+          >
+            NO AUDIT LOGS RECORDED
+          </h3>
+          <p
+            className={clsx(
+              'text-xs mt-1',
+              isSketch ? 'font-sketch-hand text-sm opacity-75' : 'font-mono text-slate-400'
+            )}
+          >
             No ledger records found matching the selected filter.
           </p>
         </Card>
@@ -284,79 +477,181 @@ export const AuditPage: React.FC = () => {
 
             return (
               <div key={log.id} className="relative">
-                {/* Visual Hash Chain Vertical Link between blocks */}
+                {/* Visual Hash Chain Vertical Link between ledger blocks */}
                 {idx < logs.length - 1 && (
-                  <div className="absolute left-6 -bottom-4 w-0.5 h-4 bg-emerald-500/50 z-10 flex items-center justify-center">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-emerald-950" />
+                  <div
+                    className={clsx(
+                      'absolute left-6 -bottom-4 w-0.5 h-4 z-10 flex items-center justify-center',
+                      isPaper
+                        ? 'bg-[#2d2d2d]'
+                        : isDark
+                          ? 'bg-[#FF4D00]'
+                          : 'bg-emerald-500/50'
+                    )}
+                  >
+                    <span
+                      style={isSketch ? getWobblyStyle('wobblyCircle') : undefined}
+                      className={clsx(
+                        'w-2.5 h-2.5 border-2',
+                        isPaper
+                          ? 'bg-[#fff9c4] border-[#2d2d2d]'
+                          : isDark
+                            ? 'bg-[#FF4D00] border-white'
+                            : 'rounded-full bg-emerald-400 ring-2 ring-emerald-950'
+                      )}
+                    />
                   </div>
                 )}
 
-                <Card className="border-[#1E3A5F] hover:border-emerald-500/40 transition-all bg-[#0B132B]/80">
-                  {/* Block Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#1E3A5F]">
+                <Card
+                  themeMode={mode}
+                  decoration={isSketch ? (idx % 2 === 0 ? 'tape' : 'pin') : 'none'}
+                  className={clsx(
+                    'transition-all',
+                    !isSketch && 'border-[#1E3A5F] hover:border-emerald-500/40 bg-[#0B132B]/80'
+                  )}
+                >
+                  {/* Block Header with Technical Ruled Line */}
+                  <div
+                    className={clsx(
+                      'flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b-2',
+                      isSketch
+                        ? isDark
+                          ? 'border-[#FF4D00]/40 border-dashed'
+                          : 'border-[#2d2d2d]/30 border-dashed'
+                        : 'border-[#1E3A5F]'
+                    )}
+                  >
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-emerald-400 px-2 py-0.5 rounded bg-[#050B14] border border-emerald-500/40">
+                      <span
+                        style={isSketch ? getWobblyStyle('wobblyTag') : undefined}
+                        className={clsx(
+                          'text-xs font-bold px-2 py-0.5 border',
+                          isPaper
+                            ? 'bg-[#fff9c4] text-[#2d2d2d] border-[#2d2d2d] font-sketch-hand'
+                            : isDark
+                              ? 'bg-[#FF4D00] text-black border-white font-sketch-hand'
+                              : 'font-mono text-emerald-400 rounded bg-[#050B14] border-emerald-500/40'
+                        )}
+                      >
                         BLOCK #{log.id}
                       </span>
 
-                      <span className="font-mono text-xs text-white font-bold tracking-wider">
+                      <span
+                        className={clsx(
+                          'text-xs font-bold tracking-wider',
+                          isSketch ? 'font-display-kalam text-sm' : 'font-mono text-white'
+                        )}
+                      >
                         {formatEventType(log.event_type)}
                       </span>
 
                       {log.auditable_type && (
-                        <span className="text-[11px] font-mono text-slate-400 px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700">
+                        <span
+                          style={isSketch ? getWobblyStyle('wobblyTag') : undefined}
+                          className={clsx(
+                            'text-[11px] px-1.5 py-0.5 border',
+                            isPaper
+                              ? 'bg-[#e5e0d8] text-[#2d2d2d] border-[#2d2d2d] font-sketch-hand'
+                              : isDark
+                                ? 'bg-black text-white/80 border-[#FF4D00]/40 font-sketch-hand'
+                                : 'font-mono text-slate-400 rounded bg-slate-900 border-slate-700'
+                          )}
+                        >
                           {log.auditable_type} #{log.auditable_id}
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs font-mono text-slate-400">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-slate-500" />
+                    <div
+                      className={clsx(
+                        'flex items-center gap-3 text-xs',
+                        isSketch ? 'font-sketch-hand' : 'font-mono text-slate-400'
+                      )}
+                    >
+                      <div className="flex items-center gap-1 opacity-75">
+                        <Clock className="w-3.5 h-3.5" />
                         <span>{new Date(log.created_at).toUTCString()}</span>
                       </div>
-                      <Badge status="nominal">SHA-256 VERIFIED</Badge>
+
+                      {/* Status Stamp */}
+                      {isSketch ? (
+                        <SketchBadge variant="nominal" mode={mode}>
+                          SHA-256 VERIFIED
+                        </SketchBadge>
+                      ) : (
+                        <Badge status="nominal">SHA-256 VERIFIED</Badge>
+                      )}
                     </div>
                   </div>
 
                   {/* Block Body */}
-                  <div className="py-3 space-y-2 text-xs font-mono">
-                    <div className="flex flex-wrap items-center gap-2 text-slate-300">
-                      <User className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                      <span className="text-slate-400">OPERATOR:</span>
-                      <span className="text-cyan-300 font-semibold">{operatorName}</span>
+                  <div
+                    className={clsx(
+                      'py-3 space-y-2 text-xs',
+                      isSketch ? 'font-sketch-hand text-sm' : 'font-mono'
+                    )}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <User className="w-3.5 h-3.5 text-[#ff4d00] shrink-0" />
+                      <span className="opacity-75 font-bold">OPERATOR:</span>
+                      <span className={isPaper ? 'text-[#2d5da1] font-bold' : isDark ? 'text-[#FF4D00] font-bold' : 'text-cyan-300 font-semibold'}>
+                        {operatorName}
+                      </span>
                       {operatorEmail && (
-                        <span className="text-slate-500 text-[11px]">({operatorEmail})</span>
+                        <span className="opacity-60 text-[11px]">({operatorEmail})</span>
                       )}
                       {log.ip_address && (
-                        <span className="text-slate-600 text-[10px]">· IP: {log.ip_address}</span>
+                        <span className="opacity-50 text-[10px]">· IP: {log.ip_address}</span>
                       )}
                     </div>
 
-                    <p className="text-slate-200 font-sans text-xs leading-relaxed">{log.description}</p>
+                    <p className="leading-relaxed opacity-90">{log.description}</p>
 
-                    {/* Cryptographic SHA-256 Hash Chain Links */}
-                    <div className="mt-3 p-3 rounded-lg bg-[#050B14] border border-emerald-500/30 space-y-2 text-[11px] shadow-inner">
+                    {/* Cryptographic SHA-256 Hash Chain Links - Technical Ruled Section */}
+                    <div
+                      style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                      className={clsx(
+                        'mt-3 p-3 space-y-2 text-[11px] border',
+                        isPaper
+                          ? 'bg-[#fdfbf7] border-2 border-[#2d2d2d] text-[#2d2d2d] shadow-sm font-mono'
+                          : isDark
+                            ? 'bg-black border-2 border-[#FF4D00] text-white font-mono'
+                            : 'rounded-lg bg-[#050B14] border-emerald-500/30 font-mono shadow-inner'
+                      )}
+                    >
                       {/* Previous Hash Link */}
                       <div className="flex items-center gap-2 overflow-hidden text-ellipsis">
-                        <LinkIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="text-slate-400 font-bold shrink-0">PREV HASH:</span>
+                        <LinkIcon className="w-3.5 h-3.5 opacity-60 shrink-0" />
+                        <span className="opacity-75 font-bold shrink-0">PREV HASH:</span>
                         {isGenesisBlock ? (
-                          <span className="text-amber-400 font-mono truncate font-bold">
+                          <span className="text-amber-500 font-mono truncate font-bold">
                             0000000000000000000000000000000000000000000000000000000000000000 (GENESIS SEED)
                           </span>
                         ) : (
-                          <span className="text-slate-300 font-mono truncate font-semibold">
+                          <span className="opacity-90 font-mono truncate font-semibold">
                             {log.previous_hash}
                           </span>
                         )}
                       </div>
 
+                      {/* Technical Ruled Divider */}
+                      <div
+                        className={clsx(
+                          'h-px w-full border-t border-dashed',
+                          isSketch
+                            ? isDark
+                              ? 'border-[#FF4D00]/30'
+                              : 'border-[#2d2d2d]/25'
+                            : 'border-emerald-500/20'
+                        )}
+                      />
+
                       {/* Current Block Hash Link */}
                       <div className="flex items-center gap-2 overflow-hidden text-ellipsis">
-                        <Lock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="text-emerald-400 font-bold shrink-0">BLOCK HASH:</span>
-                        <span className="text-emerald-300 font-mono truncate font-bold">
+                        <Lock className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span className="text-emerald-500 font-bold shrink-0">BLOCK HASH:</span>
+                        <span className="text-emerald-400 font-mono truncate font-bold">
                           {log.current_hash}
                         </span>
                       </div>
@@ -369,7 +664,10 @@ export const AuditPage: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => toggleExpand(log.id)}
-                          className="text-[11px] text-cyan-400 hover:text-cyan-300 p-1 flex items-center gap-1"
+                          className={clsx(
+                            'text-[11px] p-1 flex items-center gap-1 font-bold cursor-pointer',
+                            isPaper ? 'text-[#ff4d00]' : isDark ? 'text-[#FF4D00]' : 'text-cyan-400 hover:text-cyan-300'
+                          )}
                         >
                           <FileText className="w-3.5 h-3.5" />
                           <span>{isExpanded ? 'Hide Payload Mutation Diffs' : 'View Payload Mutation Diffs'}</span>
@@ -377,16 +675,44 @@ export const AuditPage: React.FC = () => {
                         </Button>
 
                         {isExpanded && (
-                          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg bg-[#050B14] border border-[#1E3A5F] text-[11px]">
+                          <div
+                            style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                            className={clsx(
+                              'mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 border text-[11px]',
+                              isPaper
+                                ? 'bg-white border-2 border-[#2d2d2d]'
+                                : isDark
+                                  ? 'bg-black border-2 border-[#FF4D00]'
+                                  : 'rounded-lg bg-[#050B14] border-[#1E3A5F]'
+                            )}
+                          >
                             <div>
-                              <span className="text-rose-400 font-bold block mb-1">PRIOR STATE:</span>
-                              <pre className="p-2 rounded bg-black/60 text-slate-300 overflow-x-auto">
+                              <span className="text-rose-500 font-bold block mb-1">PRIOR STATE:</span>
+                              <pre
+                                className={clsx(
+                                  'p-2 rounded overflow-x-auto text-xs',
+                                  isSketch
+                                    ? isDark
+                                      ? 'bg-[#0c0c10] text-white border border-[#FF4D00]/40'
+                                      : 'bg-[#fdfbf7] text-[#2d2d2d] border border-[#2d2d2d]/30'
+                                    : 'bg-black/60 text-slate-300'
+                                )}
+                              >
                                 {log.old_values ? JSON.stringify(log.old_values, null, 2) : 'null (Created)'}
                               </pre>
                             </div>
                             <div>
-                              <span className="text-emerald-400 font-bold block mb-1">COMMITTED STATE:</span>
-                              <pre className="p-2 rounded bg-black/60 text-emerald-300 overflow-x-auto">
+                              <span className="text-emerald-500 font-bold block mb-1">COMMITTED STATE:</span>
+                              <pre
+                                className={clsx(
+                                  'p-2 rounded overflow-x-auto text-xs',
+                                  isSketch
+                                    ? isDark
+                                      ? 'bg-[#0c0c10] text-emerald-400 border border-emerald-500/40'
+                                      : 'bg-[#fdfbf7] text-emerald-800 border border-emerald-600/30'
+                                    : 'bg-black/60 text-emerald-300'
+                                )}
+                              >
                                 {log.new_values ? JSON.stringify(log.new_values, null, 2) : 'null'}
                               </pre>
                             </div>

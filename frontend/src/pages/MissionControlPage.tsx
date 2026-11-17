@@ -30,8 +30,8 @@ import {
   Tape,
   PushPin,
   SquiggleUnderline,
-  SketchbookMode,
 } from '../components/sketchbook';
+import { useThemeStore } from '../store/themeStore';
 import { OrganSystemData } from '../types/telemetry.types';
 import apiClient from '../api/client';
 
@@ -119,16 +119,8 @@ export const MissionControlPage: React.FC = () => {
   const [lastSyncTime, setLastSyncTime] = useState<string>('SYNCHRONIZED');
   const [metString, setMetString] = useState<string>('042d 14h 22m 00s');
 
-  // Sketchbook Theme Mode: 'paper' (default) | 'dark' | 'cyber'
-  const [sketchMode, setSketchMode] = useState<SketchbookMode>(() => {
-    const saved = localStorage.getItem('auramed_sketchbook_mode');
-    return saved === 'dark' || saved === 'cyber' || saved === 'paper' ? saved : 'paper';
-  });
-
-  const handleModeChange = (newMode: SketchbookMode) => {
-    setSketchMode(newMode);
-    localStorage.setItem('auramed_sketchbook_mode', newMode);
-  };
+  // Global System Theme Mode: 'paper' (default) | 'dark' | 'cyber'
+  const { mode: sketchMode, setMode: handleModeChange } = useThemeStore();
 
   const isPaper = sketchMode === 'paper';
   const isDark = sketchMode === 'dark';

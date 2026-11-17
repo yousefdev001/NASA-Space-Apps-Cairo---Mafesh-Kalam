@@ -37,6 +37,71 @@
   }
 }
 
+/* ========================================================
+   Global Theme Overrides for Paper & Dark Sketch Modes
+   ======================================================== */
+html.theme-paper,
+body.theme-paper {
+  --bg-primary: #fdfbf7;
+  --bg-surface: #ffffff;
+  --border-color: #2d2d2d;
+  --text-primary: #2d2d2d;
+  --text-muted: #57534e;
+  background-color: #fdfbf7 !important;
+  color: #2d2d2d !important;
+  font-family: 'Patrick Hand', cursive, system-ui, sans-serif !important;
+}
+
+html.theme-paper .hud-grid,
+body.theme-paper .hud-grid {
+  background-color: #fdfbf7 !important;
+  background-image: radial-gradient(#d6cfc2 1.15px, transparent 1.15px) !important;
+  background-size: 24px 24px !important;
+}
+
+html.theme-paper .glass-panel {
+  background: #ffffff !important;
+  border: 2.5px solid #2d2d2d !important;
+  box-shadow: 4px 4px 0px 0px #2d2d2d !important;
+}
+
+html.theme-paper .glass-panel-glow {
+  background: #ffffff !important;
+  border: 2.5px solid #ff4d4d !important;
+  box-shadow: 4px 4px 0px 0px #2d2d2d !important;
+}
+
+html.theme-dark-sketch,
+body.theme-dark-sketch {
+  --bg-primary: #000000;
+  --bg-surface: #0c0c10;
+  --border-color: #FF4D00;
+  --text-primary: #ffffff;
+  --text-muted: #a1a1aa;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  font-family: 'Patrick Hand', cursive, system-ui, sans-serif !important;
+}
+
+html.theme-dark-sketch .hud-grid,
+body.theme-dark-sketch .hud-grid {
+  background-color: #000000 !important;
+  background-image: radial-gradient(rgba(255, 77, 0, 0.28) 1.15px, transparent 1.15px) !important;
+  background-size: 24px 24px !important;
+}
+
+html.theme-dark-sketch .glass-panel {
+  background: #0c0c10 !important;
+  border: 2.5px solid #FF4D00 !important;
+  box-shadow: 4px 4px 0px 0px #FF4D00 !important;
+}
+
+html.theme-dark-sketch .glass-panel-glow {
+  background: #0c0c10 !important;
+  border: 2.5px solid #FF4D00 !important;
+  box-shadow: 4px 4px 0px 0px rgba(255, 77, 0, 0.45) !important;
+}
+
 /* HUD Grid Background */
 .hud-grid {
   background-size: 32px 32px;
