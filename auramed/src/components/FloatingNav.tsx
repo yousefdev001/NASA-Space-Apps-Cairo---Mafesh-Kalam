@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, Send, X } from 'lucide-react';
+import { Download, Menu, Send, X } from 'lucide-react';
 import { getWobblyBorderStyle } from '../styles/handDrawnTokens';
 import { WavyUnderlineSvg } from './HandDrawnDecor';
 
@@ -9,6 +9,7 @@ interface FloatingNavProps {
 
 const NAV_LINKS = [
   { label: 'Features', href: '#features' },
+  { label: 'Screenshots', href: '#screenshots' },
   { label: '3D Rig', href: '#orbital-3d' },
   { label: 'Telemetry', href: '#telemetry' },
   { label: 'Systems', href: '#systems' },
@@ -58,11 +59,20 @@ export function FloatingNav({ onOpenBriefing }: FloatingNavProps) {
 
         {/* Zone 3: Single Primary Action (+ Mobile Toggle) */}
         <div className="pointer-events-auto flex items-center gap-2 sm:gap-3 shrink-0">
+          <a
+            href="/AuraMed.apk"
+            download="AuraMed.apk"
+            style={getWobblyBorderStyle('wobblySm')}
+            className="hidden sm:inline-flex items-center justify-center gap-1.5 h-11 lg:h-12 bg-[#2d5da1] dark:bg-[#FF4D00] text-white dark:text-black border-[3px] border-[#2d2d2d] dark:border-white px-3.5 lg:px-4 font-sans text-sm lg:text-base font-bold hover:bg-[#ff4d4d] dark:hover:bg-white dark:hover:text-black sketch-btn whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            <Download className="w-4 h-4" strokeWidth={2.5} />
+            <span>Download APK</span>
+          </a>
           <button
             type="button"
             onClick={onOpenBriefing}
             style={getWobblyBorderStyle('wobbly')}
-            className="hidden sm:inline-flex items-center justify-center gap-2 h-11 lg:h-12 bg-white dark:bg-[#FF4D00] text-[#2d2d2d] dark:text-black border-[3px] border-[#2d2d2d] dark:border-white px-4 lg:px-5 font-sans text-base lg:text-lg hover:bg-[#ff4d4d] hover:text-white dark:hover:bg-white dark:hover:text-black sketch-btn whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2d5da1]"
+            className="hidden sm:inline-flex items-center justify-center gap-2 h-11 lg:h-12 bg-white dark:bg-black text-[#2d2d2d] dark:text-white border-[3px] border-[#2d2d2d] dark:border-[#FF4D00] px-4 lg:px-5 font-sans text-base lg:text-lg hover:bg-[#ff4d4d] hover:text-white dark:hover:bg-[#FF4D00] dark:hover:text-black sketch-btn whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#2d5da1]"
           >
             <Send className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
             <span>Briefing</span>
@@ -102,14 +112,24 @@ export function FloatingNav({ onOpenBriefing }: FloatingNavProps) {
               {link.label}
             </a>
           ))}
+          <a
+            href="/AuraMed.apk"
+            download="AuraMed.apk"
+            onClick={() => setMobileMenuOpen(false)}
+            style={getWobblyBorderStyle('wobbly')}
+            className="mt-1 h-12 flex items-center justify-center gap-2 font-sans font-bold text-lg bg-[#2d5da1] dark:bg-[#FF4D00] text-white dark:text-black border-[3px] border-[#2d2d2d] dark:border-white hover:bg-[#ff4d4d] sketch-btn text-center cursor-pointer"
+          >
+            <Download className="w-5 h-5" />
+            <span>Download APK (111 MB)</span>
+          </a>
           <button
             type="button"
             onClick={() => {
               setMobileMenuOpen(false);
               onOpenBriefing();
             }}
-            style={getWobblyBorderStyle('wobbly')}
-            className="mt-1 h-12 font-sans text-lg bg-white dark:bg-[#FF4D00] text-[#2d2d2d] dark:text-black border-[3px] border-[#2d2d2d] dark:border-white hover:bg-[#ff4d4d] hover:text-white sketch-btn text-center cursor-pointer"
+            style={getWobblyBorderStyle('wobblyAlt')}
+            className="mt-1 h-12 font-sans text-lg bg-white dark:bg-black text-[#2d2d2d] dark:text-white border-[3px] border-[#2d2d2d] dark:border-[#FF4D00] hover:bg-[#ff4d4d] hover:text-white dark:hover:bg-[#FF4D00] dark:hover:text-black sketch-btn text-center cursor-pointer"
           >
             Request Briefing
           </button>

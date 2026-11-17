@@ -1,4 +1,4 @@
-import { Activity, ArrowDown, Film, Moon, Sun } from 'lucide-react';
+import { Activity, ArrowDown, Download, Film, Moon, Sun } from 'lucide-react';
 import { getWobblyBorderStyle, type ThemeMode } from '../styles/handDrawnTokens';
 import { HandDrawnArrowSvg, TapeStrip } from './HandDrawnDecor';
 
@@ -119,19 +119,29 @@ export function HeroSection({
               <HandDrawnArrowSvg className="hidden lg:block w-20 h-12 text-[#2d5da1] dark:text-[#FF4D00] -ml-3 -mt-2 shrink-0" />
 
               <a
-                href="#features"
+                href="/AuraMed.apk"
+                download="AuraMed.apk"
                 style={getWobblyBorderStyle('wobbly')}
-                className="flex-1 sm:flex-initial min-w-[165px] h-12 sm:h-14 inline-flex items-center justify-center gap-2 bg-white dark:bg-[#FF4D00] text-[#2d2d2d] dark:text-black border-[3px] border-[#2d2d2d] dark:border-white px-5 sm:px-7 font-sans text-lg sm:text-xl lg:text-2xl hover:bg-[#ff4d4d] hover:text-white dark:hover:bg-white dark:hover:text-black sketch-btn whitespace-nowrap cursor-pointer"
+                className="flex-1 sm:flex-initial min-w-[200px] h-12 sm:h-14 inline-flex items-center justify-center gap-2 bg-[#ff4d4d] dark:bg-[#FF4D00] text-white dark:text-black border-[3px] border-[#2d2d2d] dark:border-white px-5 sm:px-7 font-sans font-bold text-lg sm:text-xl lg:text-2xl hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black sketch-btn whitespace-nowrap cursor-pointer shadow-lg"
               >
-                <span>Explore App</span>
-                <ArrowDown className="w-5 h-5" strokeWidth={2.5} aria-hidden="true" />
+                <Download className="w-5 h-5 shrink-0" strokeWidth={2.5} aria-hidden="true" />
+                <span>Download App (.APK)</span>
+              </a>
+
+              <a
+                href="#screenshots"
+                style={getWobblyBorderStyle('wobblyAlt')}
+                className="flex-1 sm:flex-initial min-w-[155px] h-12 sm:h-14 inline-flex items-center justify-center gap-2 bg-white dark:bg-black text-[#2d2d2d] dark:text-white border-[3px] border-[#2d2d2d] dark:border-[#FF4D00] px-5 sm:px-6 font-sans text-lg sm:text-xl hover:bg-[#fff9c4] dark:hover:bg-[#FF4D00]/20 sketch-btn whitespace-nowrap cursor-pointer"
+              >
+                <span>View Screens</span>
+                <ArrowDown className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
               </a>
 
               <button
                 type="button"
                 onClick={onOpenBriefing}
-                style={getWobblyBorderStyle('wobblyAlt')}
-                className="flex-1 sm:flex-initial min-w-[145px] h-12 sm:h-14 inline-flex items-center justify-center bg-[#e5e0d8] dark:bg-black text-[#2d2d2d] dark:text-white border-[3px] border-[#2d2d2d] dark:border-[#FF4D00] px-5 sm:px-6 font-sans text-lg sm:text-xl hover:bg-[#2d5da1] hover:text-white dark:hover:bg-[#FF4D00] dark:hover:text-black sketch-btn whitespace-nowrap cursor-pointer"
+                style={getWobblyBorderStyle('wobblySm')}
+                className="flex-1 sm:flex-initial min-w-[145px] h-12 sm:h-14 inline-flex items-center justify-center bg-[#e5e0d8] dark:bg-black text-[#2d2d2d] dark:text-white border-[3px] border-[#2d2d2d] dark:border-[#FF4D00] px-5 sm:px-6 font-sans text-base sm:text-lg hover:bg-[#2d5da1] hover:text-white dark:hover:bg-[#FF4D00] dark:hover:text-black sketch-btn whitespace-nowrap cursor-pointer"
               >
                 Flight Briefing
               </button>

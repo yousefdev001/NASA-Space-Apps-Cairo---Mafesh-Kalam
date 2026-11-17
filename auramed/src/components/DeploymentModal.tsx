@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { X } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 import {
   createMissionTicketId,
   validateDeploymentRequest,
@@ -133,6 +133,27 @@ export function DeploymentModal({ isOpen, onClose }: DeploymentModalProps) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            <div
+              style={getWobblyBorderStyle('wobblySm')}
+              className="bg-[#fff9c4] dark:bg-[#18110c] border-2 border-[#2d2d2d] dark:border-[#FF4D00] p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs sm:text-sm"
+            >
+              <div>
+                <span className="font-bold text-[#ff4d4d] dark:text-[#FF4D00] block">
+                  Looking for the Astronaut App?
+                </span>
+                <span className="text-[#2d2d2d]/80 dark:text-white/80">
+                  Direct Android APK installation package (v1.0, 111 MB).
+                </span>
+              </div>
+              <a
+                href="/AuraMed.apk"
+                download="AuraMed.apk"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2d5da1] dark:bg-[#FF4D00] text-white dark:text-black font-bold rounded hover:bg-[#ff4d4d] transition-colors whitespace-nowrap shrink-0"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download APK</span>
+              </a>
+            </div>
             <div>
               <label
                 htmlFor="briefing-name"

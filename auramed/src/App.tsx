@@ -4,6 +4,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppFeaturesSection } from './components/AppFeaturesSection';
+import { AppScreenshotsSection } from './components/AppScreenshotsSection';
 import { CtaFooter } from './components/CtaFooter';
 import { DeploymentModal } from './components/DeploymentModal';
 import { FloatingNav } from './components/FloatingNav';
@@ -58,6 +59,7 @@ export default function App() {
         />
         <SkewedMarquee />
         <AppFeaturesSection />
+        <AppScreenshotsSection />
         <OrbitalSceneSection />
         <TelemetryMatrix />
         <ServiceList />

@@ -1,4 +1,4 @@
-import { Moon, Sun } from 'lucide-react';
+import { Download, Moon, Sun } from 'lucide-react';
 import { getWobblyBorderStyle, type ThemeMode } from '../styles/handDrawnTokens';
 import { TapeStrip, WavyUnderlineSvg } from './HandDrawnDecor';
 
@@ -44,15 +44,28 @@ export function CtaFooter({
           </h2>
 
           <div className="mt-6 sm:mt-8 flex flex-wrap items-center justify-center gap-4">
+            <a
+              href="/AuraMed.apk"
+              download="AuraMed.apk"
+              style={getWobblyBorderStyle('wobbly')}
+              className="w-full sm:w-auto h-12 sm:h-14 inline-flex items-center justify-center gap-2 bg-[#ff4d4d] dark:bg-[#FF4D00] text-white dark:text-black font-sans font-bold text-lg sm:text-xl md:text-2xl px-6 sm:px-10 border-[3px] border-[#2d2d2d] dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black sketch-btn cursor-pointer whitespace-nowrap shadow-lg"
+            >
+              <Download className="w-6 h-6" strokeWidth={2.5} />
+              <span>Download AuraMed APK (111 MB)</span>
+            </a>
+
             <button
               type="button"
               onClick={onOpenBriefing}
-              style={getWobblyBorderStyle('wobbly')}
-              className="w-full sm:w-auto h-12 sm:h-14 bg-white dark:bg-[#FF4D00] text-[#2d2d2d] dark:text-black font-sans text-lg sm:text-xl md:text-2xl px-6 sm:px-10 border-[3px] border-[#2d2d2d] dark:border-white hover:bg-[#ff4d4d] hover:text-white dark:hover:bg-white dark:hover:text-black sketch-btn cursor-pointer whitespace-nowrap"
+              style={getWobblyBorderStyle('wobblyAlt')}
+              className="w-full sm:w-auto h-12 sm:h-14 bg-white dark:bg-black text-[#2d2d2d] dark:text-white font-sans text-lg sm:text-xl md:text-2xl px-6 sm:px-10 border-[3px] border-[#2d2d2d] dark:border-[#FF4D00] hover:bg-[#fff9c4] dark:hover:bg-[#FF4D00]/20 sketch-btn cursor-pointer whitespace-nowrap"
             >
               Request Flight Briefing
             </button>
           </div>
+          <p className="mt-4 text-xs sm:text-sm font-mono text-[#2d2d2d]/70 dark:text-white/70">
+            Compatible with Android 8.0+ · Autonomous Flight Telemetry · NASA STD-3001
+          </p>
         </div>
 
         {/* Hand-Drawn Footer with Wavy Header Underline & Line-Through Link Hover */}
