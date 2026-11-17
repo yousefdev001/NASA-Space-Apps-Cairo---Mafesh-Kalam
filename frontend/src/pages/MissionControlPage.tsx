@@ -302,9 +302,17 @@ export const MissionControlPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Physiological 6-Organ Bio-Scan: Compact Gauges directly below Crew Selection */}
+      <Card
+        title={`PHYSIOLOGICAL 6-ORGAN BIO-SCAN · ${selectedCrew?.callsign || 'CDR-01'} (${selectedCrew?.name || 'Astronaut'})`}
+        subtitle={`Direct offline sync from crew spacesuit bio-sensor nodes · Total EVA: ${selectedCrew?.eva_hours || 0} Hours`}
+      >
+        <OrganTelemetryGrid organs={organs.length > 0 ? organs : undefined} compact />
+      </Card>
+
       {/* Primary Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column (8 cols): ECG, Vitals Stream, Organ Grid */}
+        {/* Left Column (8 cols): ECG, Vitals Stream */}
         <div className="lg:col-span-8 space-y-6">
           {/* Real-time ECG Waveform Canvas */}
           <Card
@@ -327,14 +335,6 @@ export const MissionControlPage: React.FC = () => {
               dataPoints={vitalsHistory.length > 0 ? vitalsHistory : undefined}
               height="280px"
             />
-          </Card>
-
-          {/* Organ Telemetry 6-System Grid (Direct match with mobile screen) */}
-          <Card
-            title={`PHYSIOLOGICAL 6-ORGAN BIO-SCAN · ${selectedCrew?.callsign || 'CDR-01'}`}
-            subtitle={`Direct offline sync from crew spacesuit bio-sensor nodes · Total EVA: ${selectedCrew?.eva_hours || 0} Hours`}
-          >
-            <OrganTelemetryGrid organs={organs.length > 0 ? organs : undefined} />
           </Card>
         </div>
 

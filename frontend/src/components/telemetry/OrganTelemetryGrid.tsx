@@ -66,6 +66,7 @@ interface OrganTelemetryGridProps {
   onSelectOrgan?: (organ: OrganSystemData) => void;
   selectedOrganId?: string;
   className?: string;
+  compact?: boolean;
 }
 
 export const OrganTelemetryGrid: React.FC<OrganTelemetryGridProps> = ({
@@ -73,7 +74,61 @@ export const OrganTelemetryGrid: React.FC<OrganTelemetryGridProps> = ({
   onSelectOrgan,
   selectedOrganId,
   className,
+  compact = true,
 }) => {
+  if (compact) {
+    return (
+      <div className={clsx('grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5', className)}>
+        {organs.map((organ) => {
+          const Icon = organ.icon;
+          const isSelected = selectedOrganId === organ.id;
+
+          return (
+            <div
+              key={organ.id}
+              onClick={() => onSelectOrgan?.(organ)}
+              className={clsx(
+                'group relative rounded-xl p-3 transition-all duration-200 cursor-pointer border select-none flex flex-col justify-between min-h-[120px]',
+                'bg-[#0B132B]/80 hover:bg-[#101D3F] backdrop-blur-md',
+                isSelected
+                  ? 'border-cyan-400 shadow-[0_0_15px_rgba(0,229,255,0.25)] ring-1 ring-cyan-400'
+                  : 'border-[#1E3A5F] hover:border-cyan-500/50'
+              )}
+            >
+              {/* Header: Mini Icon + Score Badge */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-lg bg-[#050B14] border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:border-cyan-400 group-hover:scale-105 group-hover:shadow-[0_0_10px_rgba(0,229,255,0.2)] transition-all">
+                  <Icon className="w-4 h-4 text-cyan-400" />
+                </div>
+                <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-[#050B14] text-cyan-400 border border-cyan-500/30 shadow-[0_0_8px_rgba(0,229,255,0.1)]">
+                  {organ.score}%
+                </span>
+              </div>
+
+              {/* Organ Name & System Category */}
+              <div className="mb-2">
+                <h4 className="font-bold text-white text-xs truncate group-hover:text-cyan-300 transition-colors">
+                  {organ.name}
+                </h4>
+                <p className="text-[10px] text-slate-400 truncate font-mono">{organ.system}</p>
+              </div>
+
+              {/* Footer: Live Status & Value */}
+              <div className="pt-2 border-t border-[#1E3A5F]/60 flex items-center justify-between gap-1">
+                <Badge status={organ.status} pulse={organ.status !== 'nominal'} className="text-[10px] px-1.5 py-0">
+                  {organ.status}
+                </Badge>
+                <span className="font-mono text-[10px] font-semibold text-slate-300 truncate" title={organ.metricValue}>
+                  {organ.metricValue}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className={clsx('space-y-4', className)}>
       <div className="flex items-center justify-between">
