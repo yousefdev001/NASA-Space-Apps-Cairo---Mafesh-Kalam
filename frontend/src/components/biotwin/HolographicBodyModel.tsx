@@ -8,6 +8,7 @@ import {
   ActiveLayersState,
   OrganStatus,
 } from '../../types/biotwin.types';
+import { useThemeStore } from '../../store/themeStore';
 
 export interface HolographicBodyModelProps {
   selectedOrganId?: OrganId | string | null;
@@ -150,6 +151,21 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
   const [hoveredOrgan, setHoveredOrgan] = useState<OrganId | null>(null);
   const idPrefix = useId().replace(/:/g, '');
 
+  const { mode } = useThemeStore();
+  const isPaper = mode === 'paper';
+  const isDark = mode === 'dark';
+  const isSketch = isPaper || isDark;
+
+  // Theme-aware vector palette
+  const hudPrimary = isPaper ? '#2d5da1' : isDark ? '#FF4D00' : '#00E5FF';
+  const gridLineColor = isPaper ? 'rgba(45, 93, 161, 0.14)' : isDark ? 'rgba(255, 77, 0, 0.16)' : 'rgba(0, 229, 255, 0.05)';
+  const scanlineColor = isPaper ? 'rgba(45, 93, 161, 0.06)' : isDark ? 'rgba(255, 77, 0, 0.10)' : 'rgba(0, 229, 255, 0.12)';
+  const skeletalStroke = isPaper ? '#475569' : isDark ? '#FF4D00' : '#00E5FF';
+  const muscularStroke = isPaper ? '#b45309' : isDark ? '#ea580c' : (shaderMode === 'thermal_heatmap' ? '#FF9100' : '#00E5FF');
+  const neuralStroke = isPaper ? '#7c3aed' : isDark ? '#c084fc' : '#38BDF8';
+  const vascularArterial = isPaper ? '#dc2626' : isDark ? '#FF4D00' : '#EF4444';
+  const vascularVenous = isPaper ? '#2563eb' : isDark ? '#38bdf8' : '#00E5FF';
+
   const getOrganData = (id: string): OrganDiagnosticData | undefined => {
     if (!organsData) return undefined;
     if (Array.isArray(organsData)) {
@@ -179,7 +195,7 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
     onSelectOrgan?.(organId);
   };
 
-  // Status colors based on shader mode
+  // Status colors based on shader mode & active theme
   const getStatusColor = (status: OrganStatus): string => {
     if (shaderMode === 'radiation_flux') {
       if (status === 'critical') return '#EF4444';
@@ -190,6 +206,28 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
       if (status === 'critical') return '#FF1744';
       if (status === 'warning') return '#FF9100';
       return '#00E5FF';
+    }
+    if (isPaper) {
+      switch (status) {
+        case 'critical':
+          return '#dc2626';
+        case 'warning':
+          return '#d97706';
+        case 'nominal':
+        default:
+          return '#059669';
+      }
+    }
+    if (isDark) {
+      switch (status) {
+        case 'critical':
+          return '#EF4444';
+        case 'warning':
+          return '#F59E0B';
+        case 'nominal':
+        default:
+          return '#10B981';
+      }
     }
     switch (status) {
       case 'critical':
@@ -313,7 +351,11 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
         className="h-full w-auto max-h-[580px] max-w-full drop-shadow-2xl overflow-visible mx-auto block"
         preserveAspectRatio="xMidYMid meet"
         style={{
-          filter: shaderMode === 'holographic' ? 'drop-shadow(0 0 18px rgba(0, 229, 255, 0.25))' : undefined,
+          filter: shaderMode === 'holographic' && !isPaper
+            ? isDark
+              ? 'drop-shadow(0 0 18px rgba(255, 77, 0, 0.25))'
+              : 'drop-shadow(0 0 18px rgba(0, 229, 255, 0.25))'
+            : undefined,
         }}
         aria-label={`Humanoid Bio-Twin (${perspective} view)`}
       >
@@ -347,10 +389,28 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
 
           {/* Shading Gradients */}
           <linearGradient id={`${idPrefix}-holo-body-grad`} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#00E5FF" stopOpacity="0.22" />
-            <stop offset="25%" stopColor="#0284C7" stopOpacity="0.16" />
-            <stop offset="60%" stopColor="#0369A1" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#00E5FF" stopOpacity="0.18" />
+            {isPaper ? (
+              <>
+                <stop offset="0%" stopColor="#2d5da1" stopOpacity="0.08" />
+                <stop offset="35%" stopColor="#2d5da1" stopOpacity="0.04" />
+                <stop offset="70%" stopColor="#fdfbf7" stopOpacity="0.10" />
+                <stop offset="100%" stopColor="#2d5da1" stopOpacity="0.06" />
+              </>
+            ) : isDark ? (
+              <>
+                <stop offset="0%" stopColor="#FF4D00" stopOpacity="0.22" />
+                <stop offset="30%" stopColor="#FF4D00" stopOpacity="0.10" />
+                <stop offset="70%" stopColor="#0c0c10" stopOpacity="0.30" />
+                <stop offset="100%" stopColor="#FF4D00" stopOpacity="0.18" />
+              </>
+            ) : (
+              <>
+                <stop offset="0%" stopColor="#00E5FF" stopOpacity="0.22" />
+                <stop offset="25%" stopColor="#0284C7" stopOpacity="0.16" />
+                <stop offset="60%" stopColor="#0369A1" stopOpacity="0.12" />
+                <stop offset="100%" stopColor="#00E5FF" stopOpacity="0.18" />
+              </>
+            )}
           </linearGradient>
 
           <linearGradient id={`${idPrefix}-thermal-body-grad`} x1="0%" y1="0%" x2="0%" y2="100%">
@@ -386,30 +446,37 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
 
           {/* Hologram Scanlines Pattern */}
           <pattern id={`${idPrefix}-scanlines`} width="100" height="4" patternUnits="userSpaceOnUse">
-            <line x1="0" y1="0" x2="100" y2="0" stroke="rgba(0, 229, 255, 0.12)" strokeWidth="0.8" />
+            <line x1="0" y1="0" x2="100" y2="0" stroke={scanlineColor} strokeWidth="0.8" />
           </pattern>
 
-          {/* Cyber Coordinate Grid */}
+          {/* Coordinate Grid Pattern */}
           <pattern id={`${idPrefix}-cyber-grid`} width="24" height="24" patternUnits="userSpaceOnUse">
-            <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(0, 229, 255, 0.05)" strokeWidth="0.6" />
+            <path d="M 24 0 L 0 0 0 24" fill="none" stroke={gridLineColor} strokeWidth="0.6" />
           </pattern>
         </defs>
 
         {/* 1. BACKGROUND HUD CALIBRATION RULERS & MATRIX */}
-        <g opacity="0.35">
+        <g opacity={isPaper ? "0.6" : isDark ? "0.45" : "0.35"}>
           <rect x="30" y="30" width="440" height="830" fill={`url(#${idPrefix}-cyber-grid)`} />
           {/* Height elevation ticks */}
           {[100, 200, 300, 400, 500, 600, 700, 800].map((y) => (
             <g key={y}>
-              <line x1="28" y1={y} x2="38" y2={y} stroke="#00E5FF" strokeWidth="0.75" />
-              <line x1="462" y1={y} x2="472" y2={y} stroke="#00E5FF" strokeWidth="0.75" />
-              <text x="12" y={y + 3} fill="#00E5FF" fontSize="7" fontFamily="monospace" opacity="0.7">
+              <line x1="28" y1={y} x2="38" y2={y} stroke={hudPrimary} strokeWidth="0.75" />
+              <line x1="462" y1={y} x2="472" y2={y} stroke={hudPrimary} strokeWidth="0.75" />
+              <text
+                x="12"
+                y={y + 3}
+                fill={hudPrimary}
+                fontSize="7"
+                fontFamily={isSketch ? "sans-serif" : "monospace"}
+                opacity={isPaper ? "0.85" : "0.7"}
+              >
                 {890 - y}
               </text>
             </g>
           ))}
           {/* Centerline vertical coordinate */}
-          <line x1="250" y1="25" x2="250" y2="865" stroke="#00E5FF" strokeWidth="0.5" strokeDasharray="3 6" opacity="0.4" />
+          <line x1="250" y1="25" x2="250" y2="865" stroke={hudPrimary} strokeWidth="0.5" strokeDasharray="3 6" opacity="0.4" />
         </g>
 
         {/* 2. RADIATION FLUX FIELD / HOTSPOTS (When shaderMode === 'radiation_flux') */}
@@ -460,7 +527,7 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
           </g>
         )}
 
-        {/* 3. TRANSLUCENT BODY SILHOUETTE (Cyber Glass Contour) */}
+        {/* 3. TRANSLUCENT BODY SILHOUETTE */}
         <g id="body-silhouette-group">
           {/* Body Fill */}
           <path
@@ -477,24 +544,24 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
                 ? '#FF5722'
                 : shaderMode === 'radiation_flux'
                 ? '#E879F9'
-                : '#00E5FF'
+                : hudPrimary
             }
-            strokeWidth="1.8"
-            strokeOpacity="0.75"
-            filter={shaderMode === 'holographic' ? `url(#${idPrefix}-holo-glow)` : undefined}
+            strokeWidth={isPaper ? "2.2" : "1.8"}
+            strokeOpacity={isPaper ? "0.9" : "0.75"}
+            filter={shaderMode === 'holographic' && !isPaper ? `url(#${idPrefix}-holo-glow)` : undefined}
           />
-          {/* Hologram Scanlines Overlay */}
+          {/* Scanlines Overlay */}
           <path
             d={perspective === 'anterior' ? anteriorSilhouette : posteriorSilhouette}
             fill={`url(#${idPrefix}-scanlines)`}
             pointerEvents="none"
-            opacity="0.6"
+            opacity={isPaper ? "0.2" : "0.6"}
           />
         </g>
 
         {/* 4. SKELETAL LAYER */}
         {activeLayers.skeletal && (
-          <g id="skeletal-layer" stroke="#00E5FF" strokeOpacity="0.38" fill="none" pointerEvents="none">
+          <g id="skeletal-layer" stroke={skeletalStroke} strokeOpacity={isPaper ? "0.6" : "0.38"} fill="none" pointerEvents="none">
             {/* Cranium & Jaw Outline */}
             <path
               d="M 234,54 C 234,44 266,44 266,54 C 266,66 260,82 250,84 C 240,82 234,66 234,54 Z"
@@ -540,7 +607,7 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
                   height="7"
                   rx="1.5"
                   strokeWidth="0.8"
-                  fill="rgba(0, 229, 255, 0.08)"
+                  fill={isPaper ? "rgba(45, 93, 161, 0.08)" : isDark ? "rgba(255, 77, 0, 0.12)" : "rgba(0, 229, 255, 0.08)"}
                 />
               )
             )}
@@ -566,8 +633,8 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
         {activeLayers.muscular && (
           <g
             id="muscular-layer"
-            stroke={shaderMode === 'thermal_heatmap' ? '#FF9100' : '#00E5FF'}
-            strokeOpacity="0.45"
+            stroke={muscularStroke}
+            strokeOpacity={isPaper ? "0.65" : "0.45"}
             fill="none"
             pointerEvents="none"
           >
@@ -577,12 +644,12 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
                 <path
                   d="M 248,154 C 228,154 200,166 182,192 C 196,212 226,214 248,212 Z"
                   strokeWidth="1.3"
-                  fill="rgba(0, 229, 255, 0.05)"
+                  fill={isPaper ? "rgba(180, 83, 9, 0.06)" : isDark ? "rgba(255, 77, 0, 0.06)" : "rgba(0, 229, 255, 0.05)"}
                 />
                 <path
                   d="M 252,154 C 272,154 300,166 318,192 C 304,212 274,214 252,212 Z"
                   strokeWidth="1.3"
-                  fill="rgba(0, 229, 255, 0.05)"
+                  fill={isPaper ? "rgba(180, 83, 9, 0.06)" : isDark ? "rgba(255, 77, 0, 0.06)" : "rgba(0, 229, 255, 0.05)"}
                 />
                 {/* Pectoral fiber striations */}
                 <path d="M 246,168 C 224,168 206,178 190,194 M 246,182 C 228,184 212,194 200,206" strokeWidth="0.7" />
@@ -690,19 +757,19 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
 
         {/* 6. NEURAL LAYER (Brain, Spinal Cord, Brachial & Sciatic Nerve Filaments) */}
         {activeLayers.neural && (
-          <g id="neural-layer" stroke="#38BDF8" strokeOpacity="0.65" fill="none" pointerEvents="none">
+          <g id="neural-layer" stroke={neuralStroke} strokeOpacity={isPaper ? "0.85" : "0.65"} fill="none" pointerEvents="none">
             {/* Brain neural network arborization */}
             <path
               d="M 242,52 C 238,58 244,66 248,70 M 258,52 C 262,58 256,66 252,70"
               strokeWidth="1.2"
-              filter={`url(#${idPrefix}-holo-glow)`}
+              filter={!isPaper ? `url(#${idPrefix}-holo-glow)` : undefined}
             />
             {/* Central Spinal Cord descending */}
             <path
               d="M 250,72 L 250,378"
-              stroke="#00E5FF"
+              stroke={neuralStroke}
               strokeWidth="1.8"
-              filter={`url(#${idPrefix}-holo-glow)`}
+              filter={!isPaper ? `url(#${idPrefix}-holo-glow)` : undefined}
             />
             {/* Brachial Plexus into Arms */}
             <path
@@ -736,7 +803,7 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
               { x: 236, y: 396 },
               { x: 264, y: 396 },
             ].map((node, i) => (
-              <circle key={i} cx={node.x} cy={node.y} r="2" fill="#38BDF8" opacity="0.8" />
+              <circle key={i} cx={node.x} cy={node.y} r="2" fill={neuralStroke} opacity="0.8" />
             ))}
           </g>
         )}
@@ -744,17 +811,17 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
         {/* 7. VASCULAR LAYER (Carotids, Jugulars, Aorta, Vena Cava, Femoral Axis) */}
         {activeLayers.vascular && (
           <g id="vascular-layer" pointerEvents="none">
-            {/* Carotid Arteries (Red/Cyan pulsed path) */}
+            {/* Carotid Arteries */}
             <path
               d="M 245,142 L 243,108 M 255,142 L 257,108"
-              stroke="#EF4444"
+              stroke={vascularArterial}
               strokeWidth="1.6"
               strokeOpacity="0.75"
             />
             {/* Jugular Veins */}
             <path
               d="M 240,142 L 238,110 M 260,142 L 262,110"
-              stroke="#00E5FF"
+              stroke={vascularVenous}
               strokeWidth="1.4"
               strokeOpacity="0.75"
             />
@@ -762,7 +829,7 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
             <path
               d="M 264,188 C 264,174 250,172 250,188 L 250,344"
               fill="none"
-              stroke="#EF4444"
+              stroke={vascularArterial}
               strokeWidth="2.2"
               strokeOpacity="0.75"
             />
@@ -770,7 +837,7 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
             <path
               d="M 256,198 L 256,344"
               fill="none"
-              stroke="#0284C7"
+              stroke={vascularVenous}
               strokeWidth="2.2"
               strokeOpacity="0.7"
             />
@@ -778,14 +845,14 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
             <path
               d="M 250,344 C 238,368 226,410 224,530 C 222,590 224,670 224,764"
               fill="none"
-              stroke="#EF4444"
+              stroke={vascularArterial}
               strokeWidth="1.4"
               strokeOpacity="0.7"
             />
             <path
               d="M 250,344 C 262,368 274,410 276,530 C 278,590 276,670 276,764"
               fill="none"
-              stroke="#EF4444"
+              stroke={vascularArterial}
               strokeWidth="1.4"
               strokeOpacity="0.7"
             />
@@ -1184,7 +1251,7 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
           <g
             id="active-selection-reticle"
             className="pointer-events-none"
-            filter={`url(#${idPrefix}-active-reticle)`}
+            filter={!isPaper ? `url(#${idPrefix}-active-reticle)` : undefined}
           >
             {/* Pulsing Target Ring */}
             <circle
@@ -1193,7 +1260,7 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
               r="22"
               fill="none"
               stroke={activeOrganColor}
-              strokeWidth="1.2"
+              strokeWidth={isPaper ? "1.6" : "1.2"}
               strokeDasharray="4 4"
               style={{
                 transformOrigin: `${activeAnchor.x}px ${activeAnchor.y}px`,
@@ -1211,7 +1278,7 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
               `}
               fill="none"
               stroke={activeOrganColor}
-              strokeWidth="2"
+              strokeWidth={isPaper ? "2.4" : "2"}
             />
 
             {/* Crosshair Center Ticks */}
@@ -1238,7 +1305,7 @@ export const HolographicBodyModel: React.FC<HolographicBodyModelProps> = ({
               y={activeAnchor.y - 14}
               fill={activeOrganColor}
               fontSize="9"
-              fontFamily="monospace"
+              fontFamily={isSketch ? "sans-serif" : "monospace"}
               fontWeight="bold"
               letterSpacing="0.05em"
             >

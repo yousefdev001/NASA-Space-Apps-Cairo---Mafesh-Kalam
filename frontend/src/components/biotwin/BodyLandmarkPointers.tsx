@@ -1,4 +1,5 @@
 import React from 'react';
+import { clsx } from 'clsx';
 import {
   OrganId,
   OrganDiagnosticData,
@@ -17,6 +18,8 @@ import {
   User,
   Zap,
 } from 'lucide-react';
+import { useThemeStore } from '../../store/themeStore';
+import { getWobblyStyle } from '../sketchbook/sketchbookConstants';
 
 export interface BodyLandmarkPointersProps {
   selectedOrganId?: OrganId | string | null;
@@ -160,6 +163,11 @@ export const BodyLandmarkPointers: React.FC<BodyLandmarkPointersProps> = ({
   className = '',
   heartRate,
 }) => {
+  const { mode } = useThemeStore();
+  const isPaper = mode === 'paper';
+  const isDark = mode === 'dark';
+  const isSketch = isPaper || isDark;
+
   const getOrganData = (id: string): OrganDiagnosticData | undefined => {
     if (!organsData) return undefined;
     if (Array.isArray(organsData)) {
@@ -214,6 +222,30 @@ export const BodyLandmarkPointers: React.FC<BodyLandmarkPointersProps> = ({
   };
 
   const getStatusLineColor = (status: OrganStatus) => {
+    if (isPaper) {
+      switch (status) {
+        case 'critical':
+          return '#dc2626';
+        case 'warning':
+          return '#d97706';
+        case 'nominal':
+        default:
+          return '#2d5da1';
+      }
+    }
+
+    if (isDark) {
+      switch (status) {
+        case 'critical':
+          return '#EF4444';
+        case 'warning':
+          return '#F59E0B';
+        case 'nominal':
+        default:
+          return '#FF4D00';
+      }
+    }
+
     switch (status) {
       case 'critical':
         return '#EF4444';
@@ -263,34 +295,34 @@ export const BodyLandmarkPointers: React.FC<BodyLandmarkPointersProps> = ({
           return (
             <g
               key={pointer.id}
-              opacity={isSelected ? 1 : status !== 'nominal' ? 0.95 : 0.65}
-              filter="url(#pointer-glow)"
+              opacity={isSelected ? 1 : status !== 'nominal' ? 0.95 : isPaper ? 0.75 : 0.65}
+              filter={!isPaper ? 'url(#pointer-glow)' : undefined}
               className="transition-opacity duration-300"
             >
               {/* Origin Pulsing Node on Organ */}
-              <circle cx={x} cy={y} r="3" fill={lineColor} />
+              <circle cx={x} cy={y} r={isPaper ? "3.5" : "3"} fill={lineColor} />
               <circle
                 cx={x}
                 cy={y}
                 r="6"
                 fill="none"
                 stroke={lineColor}
-                strokeWidth="0.8"
+                strokeWidth={isPaper ? "1" : "0.8"}
                 strokeDasharray="2 2"
                 opacity={0.8}
               />
 
-              {/* HUD Leader Circuit Line */}
+              {/* Leader Circuit Line */}
               <path
                 d={pathD}
                 fill="none"
                 stroke={lineColor}
-                strokeWidth={isSelected ? 1.8 : 1}
+                strokeWidth={isSelected ? (isPaper ? 2.4 : 1.8) : (isPaper ? 1.4 : 1)}
                 strokeDasharray={status === 'warning' ? '4 2' : undefined}
               />
 
               {/* Terminal Arrow / Dot at flank edge */}
-              <circle cx={edgeX} cy={targetY} r="2.5" fill={lineColor} />
+              <circle cx={edgeX} cy={targetY} r={isPaper ? "3" : "2.5"} fill={lineColor} />
             </g>
           );
         })}
@@ -313,11 +345,14 @@ export const BodyLandmarkPointers: React.FC<BodyLandmarkPointersProps> = ({
                 left: isLeft ? '0.5rem' : undefined,
                 right: !isLeft ? '0.5rem' : undefined,
               }}
-              className={`absolute transform -translate-y-1/2 transition-all duration-200 z-10 cursor-pointer ${
+              className={clsx(
+                'absolute transform -translate-y-1/2 transition-all duration-200 z-10 cursor-pointer select-none',
                 isSelected
-                  ? 'scale-105 ring-1 ring-cyan-400 ring-offset-1 ring-offset-slate-950'
+                  ? isSketch
+                    ? 'scale-105 z-20'
+                    : 'scale-105 ring-1 ring-cyan-400 ring-offset-1 ring-offset-slate-950'
                   : 'hover:scale-102 opacity-85 hover:opacity-100'
-              }`}
+              )}
               onClick={() => onSelectOrgan?.(pointer.id)}
               role="button"
               tabIndex={0}
@@ -330,26 +365,52 @@ export const BodyLandmarkPointers: React.FC<BodyLandmarkPointersProps> = ({
               }}
             >
               <div
-                className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs backdrop-blur-md shadow-md transition-colors ${getStatusBadgeStyle(
-                  status
-                )}`}
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  'flex items-center gap-1.5 px-2.5 py-1 text-xs transition-colors duration-150',
+                  isPaper
+                    ? isSelected
+                      ? 'border-2 border-[#ff4d4d] bg-[#fff9c4] text-[#2d2d2d] sketch-shadow -rotate-1 font-sketch-hand'
+                      : 'border-2 border-[#2d2d2d] bg-white text-[#2d2d2d] hover:bg-[#fff9c4]/30 sketch-shadow-sm font-sketch-hand'
+                    : isDark
+                      ? isSelected
+                        ? 'border-2 border-[#FF4D00] bg-[#1a0f08] text-white sketch-shadow-orange ring-1 ring-[#FF4D00] font-sketch-hand'
+                        : 'border-2 border-[#FF4D00]/60 bg-[#0c0c10] text-white hover:border-[#FF4D00] sketch-shadow-orange-sm font-sketch-hand'
+                      : clsx('rounded-md border backdrop-blur-md shadow-md', getStatusBadgeStyle(status))
+                )}
               >
-                <IconComponent className="w-3.5 h-3.5 shrink-0" />
+                <IconComponent
+                  className={clsx(
+                    'w-3.5 h-3.5 shrink-0',
+                    isPaper ? 'text-[#2d5da1]' : isDark ? 'text-[#FF4D00]' : ''
+                  )}
+                />
                 <div className="flex flex-col text-[10px] leading-tight">
-                  <span className="font-semibold tracking-wider uppercase text-[9px] opacity-90 truncate max-w-[95px]">
+                  <span
+                    className={clsx(
+                      'font-semibold tracking-wider uppercase text-[9px] truncate max-w-[95px]',
+                      isPaper ? 'text-[#2d2d2d]/80' : isDark ? 'text-white/70' : 'opacity-90 font-mono'
+                    )}
+                  >
                     {pointer.label}
                   </span>
-                  <span className="font-mono font-bold tracking-tight text-[10px]">
+                  <span
+                    className={clsx(
+                      'font-bold tracking-tight text-[10px]',
+                      isPaper ? 'text-[#2d2d2d] font-sketch-hand text-xs' : isDark ? 'text-[#FF4D00] font-sketch-hand text-xs' : 'font-mono'
+                    )}
+                  >
                     {metricText}
                   </span>
                 </div>
                 {status !== 'nominal' && (
                   <span
-                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                    className={clsx(
+                      'w-1.5 h-1.5 rounded-full shrink-0',
                       status === 'critical'
                         ? 'bg-rose-500 animate-ping'
                         : 'bg-amber-400 animate-pulse'
-                    }`}
+                    )}
                   />
                 )}
               </div>
@@ -360,3 +421,5 @@ export const BodyLandmarkPointers: React.FC<BodyLandmarkPointersProps> = ({
     </div>
   );
 };
+
+export default BodyLandmarkPointers;

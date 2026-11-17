@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { clsx } from 'clsx';
 import {
   Brain,
   Eye,
@@ -329,18 +328,47 @@ export const BioTwinPage: React.FC = () => {
       <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 items-stretch">
         {/* Holographic Avatar Center Viewport */}
         <div
-          className={`relative rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-[#0B132B]/95 via-[#050B14]/90 to-[#0B132B]/95 p-3.5 sm:p-4 lg:p-5 backdrop-blur-2xl shadow-[0_0_35px_rgba(0,229,255,0.08)] overflow-hidden transition-all duration-300 flex flex-col justify-between ${isDrawerOpen ? 'lg:col-span-7 xl:col-span-7 2xl:col-span-8' : 'lg:col-span-12'
-            }`}
+          style={isSketch ? getWobblyStyle('wobblyMd') : undefined}
+          className={clsx(
+            'relative overflow-hidden transition-all duration-300 flex flex-col justify-between p-3.5 sm:p-4 lg:p-5',
+            isDrawerOpen ? 'lg:col-span-7 xl:col-span-7 2xl:col-span-8' : 'lg:col-span-12',
+            isPaper
+              ? 'bg-white text-[#2d2d2d] border-[3px] border-[#2d2d2d] sketch-shadow font-sketch-hand'
+              : isDark
+                ? 'bg-[#0c0c10] text-white border-[3px] border-[#FF4D00] sketch-shadow-orange font-sketch-hand'
+                : 'rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-[#0B132B]/95 via-[#050B14]/90 to-[#0B132B]/95 backdrop-blur-2xl shadow-[0_0_35px_rgba(0,229,255,0.08)]'
+          )}
         >
-          {/* Subtle Ambient HUD Grid Background */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-500/10 via-transparent to-transparent" />
+          {/* Subtle Ambient HUD Grid Background for Cyber mode */}
+          {!isSketch && (
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-500/10 via-transparent to-transparent" />
+          )}
 
-          {/* Unified High-Tech HUD Control Bar */}
-          <div className="relative z-20 flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-cyan-500/20 mb-1">
+          {/* Unified High-Tech / Sketch HUD Control Bar */}
+          <div
+            className={clsx(
+              'relative z-20 flex flex-wrap items-center justify-between gap-2 pb-2.5 mb-1 border-b',
+              isPaper
+                ? 'border-[#2d2d2d]/30 text-[#2d2d2d]'
+                : isDark
+                  ? 'border-[#FF4D00]/40 text-white'
+                  : 'border-cyan-500/20'
+            )}
+          >
             {/* Left: 5 Anatomical Layers Pills + All/Isolate */}
             <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
-              <div className="flex items-center gap-1.5 mr-1 text-[10px] font-mono text-cyan-400 font-bold uppercase tracking-wider hidden sm:flex">
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <div
+                className={clsx(
+                  'flex items-center gap-1.5 mr-1 text-[10px] font-bold uppercase tracking-wider hidden sm:flex',
+                  isPaper ? 'text-[#2d2d2d] font-sketch-hand' : isDark ? 'text-[#FF4D00] font-sketch-hand' : 'font-mono text-cyan-400'
+                )}
+              >
+                <span
+                  className={clsx(
+                    'h-1.5 w-1.5 rounded-full',
+                    isPaper ? 'bg-[#2d5da1]' : isDark ? 'bg-[#FF4D00]' : 'bg-cyan-400 animate-pulse'
+                  )}
+                />
                 <span>LAYERS:</span>
               </div>
               {[
@@ -356,10 +384,21 @@ export const BioTwinPage: React.FC = () => {
                     key={id}
                     type="button"
                     onClick={() => handleToggleLayer(id)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-mono transition-all cursor-pointer ${isActive
-                        ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-[0_0_8px_rgba(0,229,255,0.2)]'
-                        : 'bg-slate-900/50 border-slate-800 text-slate-500 hover:text-slate-300'
-                      }`}
+                    style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                    className={clsx(
+                      'flex items-center gap-1 px-2 py-1 text-[10px] font-bold transition-all cursor-pointer select-none border',
+                      isPaper
+                        ? isActive
+                          ? 'bg-[#2d5da1] text-white border-[#2d2d2d] sketch-btn font-sketch-hand'
+                          : 'bg-white text-[#2d2d2d] border-[#2d2d2d] hover:bg-[#fff9c4] font-sketch-hand'
+                        : isDark
+                          ? isActive
+                            ? 'bg-[#FF4D00] text-black border-[#FF4D00] sketch-btn-orange font-sketch-hand'
+                            : 'bg-black text-white border-[#FF4D00]/50 hover:border-[#FF4D00] font-sketch-hand'
+                          : isActive
+                            ? 'rounded-lg bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-[0_0_8px_rgba(0,229,255,0.2)] font-mono'
+                            : 'rounded-lg bg-slate-900/50 border-slate-800 text-slate-500 hover:text-slate-300 font-mono'
+                    )}
                   >
                     <IconComponent className="h-3 w-3 shrink-0" />
                     <span>{label}</span>
@@ -369,7 +408,15 @@ export const BioTwinPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleSetAllLayers(!Object.values(activeLayers).every(Boolean))}
-                className="text-[9px] font-mono px-1.5 py-1 rounded border border-cyan-500/30 text-slate-400 hover:text-cyan-300 hover:border-cyan-400 transition-colors cursor-pointer"
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  'text-[9px] px-1.5 py-1 border transition-colors cursor-pointer select-none font-bold',
+                  isPaper
+                    ? 'border-[#2d2d2d] bg-[#fdfbf7] text-[#2d2d2d] hover:bg-[#fff9c4] font-sketch-hand'
+                    : isDark
+                      ? 'border-[#FF4D00] bg-black text-[#FF4D00] hover:bg-[#FF4D00]/20 font-sketch-hand'
+                      : 'rounded border-cyan-500/30 text-slate-400 hover:text-cyan-300 hover:border-cyan-400 font-mono'
+                )}
                 title={Object.values(activeLayers).every(Boolean) ? 'Isolate Layer' : 'Show All Layers'}
               >
                 {Object.values(activeLayers).every(Boolean) ? 'ISO' : 'ALL'}
@@ -379,13 +426,34 @@ export const BioTwinPage: React.FC = () => {
             {/* Right: Shader Mode, Perspective Flip, HUD Callouts, and Dossier Drawer Toggle */}
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               {/* Shader Mode Pills */}
-              <div className="flex items-center gap-0.5 bg-[#050B14]/80 p-0.5 rounded-lg border border-[#1E3A5F]">
+              <div
+                className={clsx(
+                  'flex items-center gap-0.5 p-0.5 border rounded-lg',
+                  isPaper
+                    ? 'bg-white border-[#2d2d2d]'
+                    : isDark
+                      ? 'bg-black border-[#FF4D00]'
+                      : 'bg-[#050B14]/80 border-[#1E3A5F]'
+                )}
+              >
                 <button
                   type="button"
                   onClick={() => setShaderMode('holographic')}
-                  title="Cyber Hologram"
-                  className={`p-1 rounded transition-all cursor-pointer ${shaderMode === 'holographic' ? 'bg-cyan-500/25 text-cyan-300' : 'text-slate-500 hover:text-slate-300'
-                    }`}
+                  title="Cyber Hologram / Blueprint"
+                  className={clsx(
+                    'p-1 rounded transition-all cursor-pointer',
+                    shaderMode === 'holographic'
+                      ? isPaper
+                        ? 'bg-[#fff9c4] text-[#2d5da1] font-bold'
+                        : isDark
+                          ? 'bg-[#FF4D00] text-black font-bold'
+                          : 'bg-cyan-500/25 text-cyan-300'
+                      : isPaper
+                        ? 'text-[#2d2d2d]/60 hover:text-[#2d2d2d]'
+                        : isDark
+                          ? 'text-white/60 hover:text-white'
+                          : 'text-slate-500 hover:text-slate-300'
+                  )}
                 >
                   <Sparkles className="h-3.5 w-3.5" />
                 </button>
@@ -393,8 +461,20 @@ export const BioTwinPage: React.FC = () => {
                   type="button"
                   onClick={() => setShaderMode('thermal_heatmap')}
                   title="Thermal Heatmap"
-                  className={`p-1 rounded transition-all cursor-pointer ${shaderMode === 'thermal_heatmap' ? 'bg-amber-500/25 text-amber-300' : 'text-slate-500 hover:text-slate-300'
-                    }`}
+                  className={clsx(
+                    'p-1 rounded transition-all cursor-pointer',
+                    shaderMode === 'thermal_heatmap'
+                      ? isPaper
+                        ? 'bg-amber-100 text-amber-900 font-bold'
+                        : isDark
+                          ? 'bg-amber-400 text-black font-bold'
+                          : 'bg-amber-500/25 text-amber-300'
+                      : isPaper
+                        ? 'text-[#2d2d2d]/60 hover:text-[#2d2d2d]'
+                        : isDark
+                          ? 'text-white/60 hover:text-white'
+                          : 'text-slate-500 hover:text-slate-300'
+                  )}
                 >
                   <Flame className="h-3.5 w-3.5" />
                 </button>
@@ -402,8 +482,20 @@ export const BioTwinPage: React.FC = () => {
                   type="button"
                   onClick={() => setShaderMode('radiation_flux')}
                   title="Radiation Flux"
-                  className={`p-1 rounded transition-all cursor-pointer ${shaderMode === 'radiation_flux' ? 'bg-fuchsia-500/25 text-fuchsia-300' : 'text-slate-500 hover:text-slate-300'
-                    }`}
+                  className={clsx(
+                    'p-1 rounded transition-all cursor-pointer',
+                    shaderMode === 'radiation_flux'
+                      ? isPaper
+                        ? 'bg-purple-100 text-purple-900 font-bold'
+                        : isDark
+                          ? 'bg-fuchsia-400 text-black font-bold'
+                          : 'bg-fuchsia-500/25 text-fuchsia-300'
+                      : isPaper
+                        ? 'text-[#2d2d2d]/60 hover:text-[#2d2d2d]'
+                        : isDark
+                          ? 'text-white/60 hover:text-white'
+                          : 'text-slate-500 hover:text-slate-300'
+                  )}
                 >
                   <Radio className="h-3.5 w-3.5" />
                 </button>
@@ -413,7 +505,15 @@ export const BioTwinPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleTogglePerspective}
-                className="flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-cyan-950/40 px-2 py-1 text-[11px] font-mono font-bold text-cyan-300 hover:bg-cyan-500/25 transition-all shadow-[0_0_10px_rgba(0,229,255,0.15)] cursor-pointer"
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  'flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold border transition-all cursor-pointer select-none',
+                  isPaper
+                    ? 'border-2 border-[#2d2d2d] bg-white text-[#2d2d2d] hover:bg-[#fff9c4] sketch-btn font-sketch-hand'
+                    : isDark
+                      ? 'border-2 border-[#FF4D00] bg-black text-white hover:bg-[#FF4D00]/20 sketch-btn-orange font-sketch-hand'
+                      : 'rounded-lg border-cyan-500/40 bg-cyan-950/40 font-mono text-cyan-300 hover:bg-cyan-500/25 shadow-[0_0_10px_rgba(0,229,255,0.15)]'
+                )}
                 title="Rotate Humanoid Avatar 180°"
               >
                 <RotateCw className="h-3 w-3" />
@@ -424,10 +524,21 @@ export const BioTwinPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowCalloutPins(!showCalloutPins)}
-                className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-mono font-bold transition-all cursor-pointer ${showCalloutPins
-                    ? 'border-cyan-400 bg-cyan-500/20 text-cyan-300 shadow-[0_0_10px_rgba(0,229,255,0.2)]'
-                    : 'border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-white'
-                  }`}
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  'flex items-center gap-1 px-2 py-1 text-[11px] font-bold border transition-all cursor-pointer select-none',
+                  isPaper
+                    ? showCalloutPins
+                      ? 'border-2 border-[#2d2d2d] bg-[#2d5da1] text-white sketch-btn font-sketch-hand'
+                      : 'border-2 border-[#2d2d2d] bg-white text-[#2d2d2d] hover:bg-[#fff9c4] font-sketch-hand'
+                    : isDark
+                      ? showCalloutPins
+                        ? 'border-2 border-[#FF4D00] bg-[#FF4D00] text-black sketch-btn-orange font-sketch-hand'
+                        : 'border border-[#FF4D00]/50 bg-black text-white font-sketch-hand'
+                      : showCalloutPins
+                        ? 'rounded-lg border-cyan-400 bg-cyan-500/20 text-cyan-300 shadow-[0_0_10px_rgba(0,229,255,0.2)] font-mono'
+                        : 'rounded-lg border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-white font-mono'
+                )}
                 title="Toggle HUD landmark callouts"
               >
                 <Radio className="h-3 w-3" />
@@ -438,10 +549,17 @@ export const BioTwinPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-                className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-mono font-bold transition-all cursor-pointer ${isDrawerOpen
-                    ? 'border-cyan-400 bg-cyan-500/25 text-cyan-300'
-                    : 'border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-white'
-                  }`}
+                style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+                className={clsx(
+                  'flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold border transition-all cursor-pointer select-none',
+                  isPaper
+                    ? 'border-2 border-[#2d2d2d] bg-[#2d5da1] text-white hover:bg-[#204375] sketch-btn font-sketch-hand'
+                    : isDark
+                      ? 'border-2 border-[#FF4D00] bg-[#FF4D00] text-black hover:bg-[#ff6a26] sketch-btn-orange font-sketch-hand'
+                      : isDrawerOpen
+                        ? 'rounded-lg border-cyan-400 bg-cyan-500/25 text-cyan-300 font-mono'
+                        : 'rounded-lg border-[#1E3A5F] bg-[#050B14] text-slate-400 hover:text-white font-mono'
+                )}
               >
                 <Stethoscope className="h-3 w-3" />
                 <span>{isDrawerOpen ? 'HIDE DOSSIER' : 'INSPECT DOSSIER'}</span>
@@ -453,9 +571,19 @@ export const BioTwinPage: React.FC = () => {
           <div className="relative flex-1 min-h-[480px] sm:min-h-[540px] max-h-[620px] flex items-center justify-center py-2">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center space-y-4 py-24 text-center">
-                <div className="h-12 w-12 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
-                <p className="text-xs font-mono text-cyan-300 animate-pulse">
-                  Acquiring 500Hz Bio-Impedance Mesh & Holographic Avatar Telemetry...
+                <div
+                  className={clsx(
+                    'h-12 w-12 rounded-full border-2 border-t-transparent animate-spin',
+                    isPaper ? 'border-[#2d5da1]' : isDark ? 'border-[#FF4D00]' : 'border-cyan-400'
+                  )}
+                />
+                <p
+                  className={clsx(
+                    'text-xs animate-pulse font-bold',
+                    isPaper ? 'text-[#2d5da1] font-sketch-hand' : isDark ? 'text-[#FF4D00] font-sketch-hand' : 'font-mono text-cyan-300'
+                  )}
+                >
+                  Acquiring 500Hz Bio-Impedance Mesh & Humanoid Avatar Telemetry...
                 </p>
               </div>
             ) : (
@@ -471,10 +599,10 @@ export const BioTwinPage: React.FC = () => {
                   activeLayers={activeLayers}
                   showPointers={false}
                   onHoverOrgan={(id) => setHoveredOrganId(id)}
-                  className="h-full w-auto max-h-[580px] mx-auto drop-shadow-[0_0_25px_rgba(0,229,255,0.2)]"
+                  className="h-full w-auto max-h-[580px] mx-auto"
                 />
 
-                {/* Cybernetic Leader Lines & Landmark Callout Pins Overlay */}
+                {/* Cybernetic / Hand-drawn Leader Lines & Landmark Callout Pins Overlay */}
                 {showCalloutPins && (
                   <BodyLandmarkPointers
                     selectedOrganId={selectedOrganId as OrganId}
@@ -490,20 +618,32 @@ export const BioTwinPage: React.FC = () => {
             )}
 
             {/* Corner Metadata HUD Callouts */}
-            <div className="pointer-events-none absolute bottom-2 left-2 z-20 space-y-0.5 font-mono text-[9px] text-slate-400 hidden sm:block">
-              <div className="flex items-center gap-1 text-cyan-300 font-bold">
+            <div
+              className={clsx(
+                'pointer-events-none absolute bottom-2 left-2 z-20 space-y-0.5 text-[9px] hidden sm:block',
+                isPaper ? 'text-[#2d2d2d]/80 font-sketch-hand font-bold text-[10px]' : isDark ? 'text-white/80 font-sketch-hand font-bold text-[10px]' : 'font-mono text-slate-400'
+              )}
+            >
+              <div className={clsx('flex items-center gap-1 font-bold', isPaper ? 'text-[#2d5da1]' : isDark ? 'text-[#FF4D00]' : 'text-cyan-300')}>
                 <Sparkles className="h-2.5 w-2.5" />
                 <span>VECTOR BIO-TWIN RESOLUTION: 500 DPI</span>
               </div>
               <div>SPACE-STD: NASA STD-3001 VOL 1 & 2</div>
               <div>BIO-MESH SENSORS: 12 ANATOMICAL CHANNELS LOCKED</div>
               {hoveredOrganId && (
-                <div className="text-cyan-400">TARGET HOVER: {hoveredOrganId.toUpperCase()}</div>
+                <div className={isPaper ? 'text-[#2d5da1]' : isDark ? 'text-[#FF4D00]' : 'text-cyan-400'}>
+                  TARGET HOVER: {hoveredOrganId.toUpperCase()}
+                </div>
               )}
             </div>
 
-            <div className="pointer-events-none absolute bottom-2 right-2 z-20 text-right font-mono text-[9px] text-slate-400 hidden sm:block">
-              <div className="text-emerald-400 font-bold">● BIO-DOWNLINK NOMINAL</div>
+            <div
+              className={clsx(
+                'pointer-events-none absolute bottom-2 right-2 z-20 text-right text-[9px] hidden sm:block',
+                isPaper ? 'text-[#2d2d2d]/80 font-sketch-hand font-bold text-[10px]' : isDark ? 'text-white/80 font-sketch-hand font-bold text-[10px]' : 'font-mono text-slate-400'
+              )}
+            >
+              <div className="text-emerald-500 font-bold">● BIO-DOWNLINK NOMINAL</div>
               <div>LATENCY: 42 ms · ORBIT NO. 14,892</div>
               <div>ASTRONAUT: {selectedAstronaut.callsign} ({selectedAstronaut.name})</div>
             </div>
@@ -526,25 +666,48 @@ export const BioTwinPage: React.FC = () => {
         )}
       </div>
 
-      {/* 4. Bottom HUD Ribbon: Quick Organ Selector Chips Strip */}
-      <div className="rounded-2xl border border-cyan-500/30 bg-[#0B132B]/90 p-4 backdrop-blur-xl space-y-3">
+      {/* 4. Bottom Ribbon: Quick Organ Selector Chips Strip */}
+      <div
+        style={isSketch ? getWobblyStyle('wobblyMd') : undefined}
+        className={clsx(
+          'p-4 space-y-3 transition-all',
+          isPaper
+            ? 'bg-white text-[#2d2d2d] border-[3px] border-[#2d2d2d] sketch-shadow font-sketch-hand'
+            : isDark
+              ? 'bg-[#0c0c10] text-white border-[3px] border-[#FF4D00] sketch-shadow-orange font-sketch-hand'
+              : 'rounded-2xl border border-cyan-500/30 bg-[#0B132B]/90 backdrop-blur-xl'
+        )}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Layers className="h-4 w-4 text-cyan-400" />
-            <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
+            <Layers className={clsx('h-4 w-4', isPaper ? 'text-[#2d5da1]' : isDark ? 'text-[#FF4D00]' : 'text-cyan-400')} />
+            <h3
+              className={clsx(
+                'font-bold uppercase tracking-wider',
+                isSketch ? 'font-display-kalam text-sm' : 'text-xs font-mono text-white'
+              )}
+            >
               Anatomical Systems Selector ({filteredOrgans.length} Active Targets)
             </h3>
           </div>
 
           {/* Quick Search */}
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
+            <Search className={clsx('absolute left-2.5 top-2.5 h-3.5 w-3.5', isPaper ? 'text-[#2d2d2d]/60' : 'text-slate-400')} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter organ or biomarker..."
-              className="w-full rounded-lg border border-[#1E3A5F] bg-[#050B14] pl-8 pr-3 py-1.5 text-xs font-mono text-white placeholder-slate-500 focus:border-cyan-400 focus:outline-none"
+              style={isSketch ? getWobblyStyle('wobblySm') : undefined}
+              className={clsx(
+                'w-full pl-8 pr-3 py-1.5 text-xs transition-colors focus:outline-none',
+                isPaper
+                  ? 'border-2 border-[#2d2d2d] bg-[#fdfbf7] text-[#2d2d2d] placeholder-[#2d2d2d]/50 font-sketch-hand'
+                  : isDark
+                    ? 'border-2 border-[#FF4D00] bg-black text-white placeholder-slate-400 font-sketch-hand'
+                    : 'rounded-lg border border-[#1E3A5F] bg-[#050B14] font-mono text-white placeholder-slate-500 focus:border-cyan-400'
+              )}
             />
           </div>
         </div>
