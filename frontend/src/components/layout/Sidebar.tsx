@@ -125,8 +125,8 @@ export const Sidebar: React.FC = () => {
   });
 
   return (
-    <aside className="w-64 border-r border-[#1E3A5F] bg-[#050B14]/70 backdrop-blur-md flex flex-col justify-between shrink-0 select-none">
-      <div className="p-4 space-y-1">
+    <aside className="w-64 border-r border-[#1E3A5F] bg-[#050B14]/80 backdrop-blur-md flex flex-col h-full min-h-0 shrink-0 select-none">
+      <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-1 overscroll-contain">
         <div className="px-3 py-2 text-[11px] font-mono tracking-widest text-slate-400 uppercase font-bold">
           MISSION SYSTEMS
         </div>
@@ -165,8 +165,8 @@ export const Sidebar: React.FC = () => {
         })}
       </div>
 
-      {/* System Status Footer in Sidebar */}
-      <div className="p-4 border-t border-[#1E3A5F] bg-[#0B132B]/40 space-y-2">
+      {/* System Status Footer in Sidebar (Fixed at bottom) */}
+      <div className="p-4 border-t border-[#1E3A5F] bg-[#0B132B]/60 shrink-0 space-y-2">
         <div className="flex items-center justify-between text-xs font-mono">
           <span className="text-slate-400">STATUS:</span>
           <span className="text-emerald-400 font-bold flex items-center gap-1.5">
